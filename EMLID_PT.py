@@ -327,7 +327,7 @@ def send_email_gmail_api(subject, body_text, to_emails, attachment_path=None):
 receiver_emails = [
     'darapanenivandana1199@gmail.com',
     'vdzfb@missouri.edu', 
-    # "bernardocandido@missouri.edu"
+    #"bernardocandido@missouri.edu"
 ]
 
 subject_success = '✅ Final Output CSV File'
