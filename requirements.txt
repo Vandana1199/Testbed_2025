@@ -1,0 +1,6 @@
+pydrive
+pandas
+geopandas
+matplotlib
+shapely
+smtplib
