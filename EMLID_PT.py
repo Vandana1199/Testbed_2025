@@ -17,6 +17,7 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
@@ -34,7 +35,7 @@ gauth.SaveCredentialsFile("mycreds.txt")
 drive = GoogleDrive(gauth)
 
 # folder ID to connect with the folder inside the drive
-folder_id = '1FVAhkz6bdtsOyBN4jtrUF0Dzg1kbEkbs'
+folder_id = '1twSJ1eI_mGUWJpWdO1kjESGKxr22lCj-'
 
 # List all files in the folder
 file_list = drive.ListFile({
@@ -43,12 +44,6 @@ file_list = drive.ListFile({
 
 for file in file_list:
     print(f"Title: {file['title']}, ID: {file['id']}")
-
-# === Step 1: Define folder ID ===
-folder_id = '1FVAhkz6bdtsOyBN4jtrUF0Dzg1kbEkbs'
-
-# === Step 2: Get all files in the folder ===
-file_list = drive.ListFile({'q': f"'{folder_id}' in parents and trashed=false"}).GetList()
 
 # === Step 3: Setup ===
 emlid_files = []
@@ -109,8 +104,8 @@ else:
     print("❌ No PT files found.")
 
 # === 8. Load data ===
-GPS_raw = pd.read_csv("EMLID_3.11.25.csv")
-PT_raw = pd.read_csv("PT_3.11.25.csv")
+GPS_raw = pd.read_csv(latest_emlid[0])
+PT_raw = pd.read_csv(latest_pt[0])
 
 # === 9. Clean timestamp in PT data ===
 PT_raw['datetime_clean'] = PT_raw['datetime'].str.replace(r'^[A-Za-z]+ ', '', regex=True)
@@ -128,13 +123,11 @@ PT_raw['time'] = pd.to_timedelta(PT_raw['datetime'].dt.strftime('%H:%M:%S'))
 GPS = GPS_raw.rename(columns={"longitude(deg)": "X", "latitude(deg)": "Y"})
 GPS = GPS[['X', 'Y', 'GPST']]
 
-
 # === 12. Rescale PT time using time offset ===
 time_diff = timedelta(hours=5, minutes=0, seconds=18)
 PT_scaled = PT_raw.sort_values('time').copy()
 PT_scaled['n'] = range(1, len(PT_scaled) + 1)
 PT_scaled['scaled_time'] = PT_scaled['datetime'] + time_diff
-
 
 # === 13. Add IDs for merging ===
 PT_merge = PT_scaled[['rawdistance', 'scaled_time', "tare", 'date']].copy()
@@ -146,7 +139,6 @@ GPS['scaled_time2'] = GPS['scaled_time'].str.replace(':', '').astype(int)
 GPS['ID'] = GPS.groupby('scaled_time2').cumcount() + 1
 GPS_merge = GPS[['X', 'Y', 'scaled_time', 'ID']]
 
-
 # === 14. Merge PT and GPS ===
 merged_data = pd.merge(PT_merge, GPS_merge, how='outer', on=['scaled_time', 'ID'])
 merged_data = merged_data.ffill()
@@ -156,14 +148,6 @@ merged_filtered = merged_data[['rawdistance', 'X', 'Y', 'scaled_time', 'tare', "
 merged_filtered
 merged_filtered.isnull().sum()
 merged_filtered.dropna()
-
-# # === 16. Visualize mean per second ===
-# means_per_sec = merged_filtered.groupby(['time', 'X', 'Y']).agg(mean_height=('rawdistance', 'mean')).reset_index()
-# plt.figure()
-# plt.scatter(means_per_sec['time'], means_per_sec['mean_height'])
-# plt.xticks(rotation=90)
-# plt.title("Mean height per second")
-# plt.show()
 
 # # === 17. Read and process plot corners ===
 # Read the CSV file
@@ -205,23 +189,6 @@ plot_intersect
 
 plot_intersect["Plot"].value_counts()
 
-# # === 21. Visualize plots with points ===
-# plt.figure()
-# plot_corners_plot = corners.copy()
-# for plot_id in plot_corners_plot['Plot'].unique():
-#     poly = plot_corners_plot[plot_corners_plot['Plot'] == plot_id].copy()
-#     poly = pd.concat([poly, poly.iloc[[0]]], ignore_index=True)
-#     plt.plot(poly['x'], poly['y'], marker='o', label=f"Plot {plot_id}")
-# plt.scatter(plot_intersect.geometry.x, plot_intersect.geometry.y, c='red', s=10, label='Points')
-# plt.legend()
-# plt.title("PT Points in Plots")
-# plt.show()
-
-# Calculate the height from the raw
-plot_intersect["PT_Height(cm)"] = plot_intersect["rawdistance"] - plot_intersect["tare"]
-plot_intersect
-
-
 # Merge the plot_intersect dataframe with polygon_gdf based on the 'plot' column
 result = plot_intersect.merge(polygon_gdf[['Plot', 'geometry']], on='Plot', how='left')
 result = result.rename(columns = {"geometry_x" : "geometry", "geometry_y" : "Coordinates", "date" : "Date"})
@@ -241,12 +208,8 @@ Emlid_PT_Intergrated = result.groupby(['Plot', 'Strip']).agg(
 Emlid_PT_Intergrated["Farm_Coordiantes"] = """POLYGON ((-92.27126447977226,38.905762369582106, -92.27126447977226,38.90536179063761, -92.26988422615567,38.90536179063761, -92.26988422615567,38.905762369582106, -92.27126447977226,38.905762369582106))"""
 Emlid_PT_Intergrated
 
-# # === After generating and saving the final CSV ===
-# Emlid_PT_Intergrated.to_csv('Emlid_PT_Intergrated.csv', index=False)
-# print('✅ CSV file saved as Emlid_PT_Intergrated.csv')
-
 # === Rename the file with date suffix ===
-emlid_date_str = re.search(r'(\d+\.\d+\.\d+)', latest_emlid[0]).group(1).replace('.', '-')
+emlid_date_str = re.search(r'(\d+\.\d+\.\d+)', latest_emlid[0]).group(1)
 intermediate_file = 'Emlid_PT_Intergrated.csv'
 final_filename = f"Emlid_PT_Intergrated_{emlid_date_str}.csv"
 
@@ -262,7 +225,7 @@ os.rename(intermediate_file, final_filename)
 print(f"📦 Renamed to: {final_filename}")
 
 # === Upload to Google Drive ===
-upload_file = drive.CreateFile({'title': final_filename, 'parents': [{'id': folder_id}]})
+upload_file = drive.CreateFile({'title': final_filename, 'parents': [{'id': '1o0BNrGeds912a2bdJkmUIwvWZPAaPS1J'}]})
 upload_file.SetContentFile(final_filename)
 upload_file.Upload()
 print(f"✅ Final file uploaded to Google Drive as: {final_filename}")
@@ -326,7 +289,6 @@ def send_email_gmail_api(subject, body_text, to_emails, attachment_path=None):
 receiver_emails = [
     'darapanenivandana1199@gmail.com',
     'vdzfb@missouri.edu', 
-    #"bernardocandido@missouri.edu"
 ]
 
 subject_success = '✅ Final Output CSV File'
@@ -335,7 +297,7 @@ body_success = 'Hi, please find the final CSV output file attached.'
 subject_failure = '❌ Script Execution Failed'
 body_failure = 'Hi, the script encountered an error during execution. Please check the logs below:\n\n'
 
-final_filename = "Emlid_PT_Intergrated_3-11-25.csv"  # or dynamic filename
+final_filename = f"Emlid_PT_Intergrated_{emlid_date_str}.csv"  # or dynamic filename
 
 try:
     send_email_gmail_api(subject_success, body_success, receiver_emails, attachment_path=final_filename)

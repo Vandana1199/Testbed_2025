@@ -3,28 +3,21 @@ from pydrive.drive import GoogleDrive
 import pandas as pd
 import re
 import os
-import geopandas as gpd
-import matplotlib.pyplot as plt
-from shapely.geometry import Point, Polygon
-from datetime import timedelta
-import numpy as np
-import smtplib
 import traceback
-import os.path
+from datetime import datetime
 import base64
 from email.message import EmailMessage
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
 
+# === Authenticate with Google Drive ===
 gauth = GoogleAuth()
 gauth.LoadCredentialsFile("mycreds_new.txt")
 
 if gauth.credentials is None:
-    gauth.CommandLineAuth()  # 👈 Use this instead of LocalWebserverAuth
+    gauth.CommandLineAuth()
 elif gauth.access_token_expired:
     gauth.Refresh()
 else:
@@ -33,30 +26,24 @@ else:
 gauth.SaveCredentialsFile("mycreds_new.txt")
 drive = GoogleDrive(gauth)
 
-# folder ID to connect with the folder inside the drive
-folder_id = '1klYbnCcTR_SFsC1nEmRKP2jNIoLnlKGY'
+# === Folder IDs ===
+folder_1_id = '1egHA55KaDp-jj2AsHymVUKarBpdq9xGB'  # Harvest
+folder_2_id = '1o0BNrGeds912a2bdJkmUIwvWZPAaPS1J'  # Emlid_PT_Intergrated
+folder_3_id = '1vJnBWKCWhUpJNWL3UVA5aJPH5-icfW77'  # Final output (Yield)
 
-# List all files in the folder
-file_list = drive.ListFile({
-    'q': f"'{folder_id}' in parents and trashed=false"
-}).GetList()
+# === List files ===
+harvest_files = drive.ListFile({'q': f"'{folder_1_id}' in parents and trashed=false"}).GetList()
+pt_files = drive.ListFile({'q': f"'{folder_2_id}' in parents and trashed=false"}).GetList()
 
-for file in file_list:
+print("📂 Harvest Folder Files:")
+for file in harvest_files:
     print(f"Title: {file['title']}, ID: {file['id']}")
 
-# === Step 2: Get all files in the folder ===
-file_list = drive.ListFile({'q': f"'{folder_id}' in parents and trashed=false"}).GetList()
+print("\n📂 Emlid_PT_Intergrated Folder Files:")
+for file in pt_files:
+    print(f"Title: {file['title']}, ID: {file['id']}")
 
-# === Step 3: Setup ===
-Harvest_files = []
-Emlid_PT_Intergrated_files = []
-DryWt_files = []
-
-pattern_Harvest = re.compile(r'^Harvest_(\d+\.\d+\.\d+)\.csv$')
-pattern_Emlid_PT_Intergrated = re.compile(r'^Emlid_PT_Intergrated_(\d+\.\d+\.\d+)\.csv$')
-pattern_DryWt = re.compile(r'^DryWt_(\d+\.\d+\.\d+)\.csv$')
-
-# === Function to sort files by date ===
+# === Patterns and sorting ===
 def extract_date_key(filename):
     match = re.search(r'(\d+)\.(\d+)\.(\d+)', filename)
     if match:
@@ -64,154 +51,112 @@ def extract_date_key(filename):
         return (year, month, day)
     return (0, 0, 0)
 
-# === Step 4: Classify files ===
-for file in file_list:
-    title = file['title']
-    if pattern_Harvest.match(title):
-        Harvest_files.append((title, file['id']))
-    elif pattern_Emlid_PT_Intergrated.match(title):
-        Emlid_PT_Intergrated_files.append((title, file['id']))
-    elif pattern_DryWt.match(title):
-        DryWt_files.append((title, file['id']))
+harvest_files = [(f['title'], f['id']) for f in harvest_files if re.match(r'^Harvest_(\d+\.\d+\.\d+)\.csv$', f['title'])]
+pt_files = [(f['title'], f['id']) for f in pt_files if re.match(r'^Emlid_PT_Intergrated_(\d+\.\d+\.\d+)\.csv$', f['title'])]
 
-# === Step 5-7: Download latest files ===
-if Harvest_files:
-    latest_Harvest = max(Harvest_files, key=lambda x: extract_date_key(x[0]))
-    print(f"📥 Downloading Harvest file: {latest_Harvest[0]}")
-    file = drive.CreateFile({'id': latest_Harvest[1]})
-    file.GetContentFile(latest_Harvest[0])
-else:
+# === Download latest files ===
+if not harvest_files:
     print("❌ No Harvest files found.")
+    exit()
 
-if Emlid_PT_Intergrated_files:
-    latest_Emlid = max(Emlid_PT_Intergrated_files, key=lambda x: extract_date_key(x[0]))
-    print(f"📥 Downloading Emlid_PT_Intergrated file: {latest_Emlid[0]}")
-    file = drive.CreateFile({'id': latest_Emlid[1]})
-    file.GetContentFile(latest_Emlid[0])
-else:
+if not pt_files:
     print("❌ No Emlid_PT_Intergrated files found.")
+    exit()
 
-if DryWt_files:
-    latest_DryWt = max(DryWt_files, key=lambda x: extract_date_key(x[0]))
-    print(f"📥 Downloading DryWt file: {latest_DryWt[0]}")
-    file = drive.CreateFile({'id': latest_DryWt[1]})
-    file.GetContentFile(latest_DryWt[0])
-else:
-    print("❌ No DryWt files found.")
+latest_harvest = max(harvest_files, key=lambda x: extract_date_key(x[0]))
+latest_pt = max(pt_files, key=lambda x: extract_date_key(x[0]))
 
-df = pd.read_csv("Harvest_10.02.24.csv")
+# Download files
+drive.CreateFile({'id': latest_harvest[1]}).GetContentFile(latest_harvest[0])
+drive.CreateFile({'id': latest_pt[1]}).GetContentFile(latest_pt[0])
 
-# Check for negative values in the 'weight' column
-negative_values = df[df['Weight in kg'] < 0]
+print(f"📥 Downloaded: {latest_harvest[0]}")
+print(f"📥 Downloaded: {latest_pt[0]}")
 
-# Drop rows where 'weight' is negative
-df = df[df['Weight in kg'] >= 0]
-del df['Units']
+# === Load Harvest CSV ===
+df = pd.read_csv(latest_harvest[0])
+print("📋 Harvest Columns:", df.columns.tolist())
 
-# Filter rows where Farm (Plot) is 14 and Paddock is 1
-filtered_data = df[(df['Farm'] == 14) & (df['Paddock'] == 1)]
-# Change the 'Strip' value from 100 to 10
-df.loc[df['Strip'] == 100, 'Strip'] = 10
-df[df['Strip'] == 10]
+# === Rename columns safely ===
+df.columns = df.columns.str.strip()  # Strip spaces
 
-# Create a new column 'Plot' by merging 'Farm' and 'Paddock' columns
-df['Plot'] = df['Farm'].astype(str) + '.' + df['Paddock'].astype(str)
+# rename_dict = {}
+# if "Wet wt. (g)" in df.columns:
+#     rename_dict["Wet wt. (g)"] = "Sub Wet Wt (g)"
+# if "Dry wt. (g)" in df.columns:
+#     rename_dict["Dry wt. (g)"] = "Sub Dry Wt (g)"
+# elif "Dry  wt. (g)" in df.columns:
+#     rename_dict["Dry  wt. (g)"] = "Sub Dry Wt (g)"
 
-dh = pd.read_csv("Emlid_PT_Intergrated_10.02.24.csv")
-# Initialize plots and strips
-plots = ["14.1", "14.2", "14.3", "14.4", "28.1", "28.2", "28.3", "28.4"]
-strips = list(range(1, 11))  # Strips 1 to 10
+# df.rename(columns=rename_dict, inplace=True)
 
-# Assign plot and strip labels
-plot_labels = []
-strip_labels = []
+# === Clean and calculate ===
+if "Weight in kg" in df.columns:
+    df = df[df["Weight in kg"] >= 0]
 
-for plot in plots:
-    plot_labels.extend([plot] * len(strips))
-    strip_labels.extend(strips)
+if "Units" in df.columns:
+    del df["Units"]
 
-# Truncate the labels to match the number of rows in the dataset
-dh["Plot"] = plot_labels[:len(dh)]
-dh["Strip"] = strip_labels[:len(dh)]
+df.insert(df.columns.get_loc("Length in meters") + 1, "Width (m)", 0.8128)
+df["Area (m²)"] = df["Length in meters"] * df["Width (m)"]
+df.insert(df.columns.get_loc("Width (m)") + 1, "Area (m²)", df.pop("Area (m²)"))
 
-# Merge the two datasets
-data = pd.merge(
-    df,
-    dh,
-    left_on=["Plot", "Strip"],
-    right_on=["Plot", "Strip"],
-    how="left"
-)
+df ["Dry Wt (g)"] = df["DW + bag (g)"] - df["Dry bag wt. (g)"]
+df["Wet Wt (g)"] = df["WW + bag (g)"] - df["Wet bag wt. (g)"]
+df["Dry Matter"] = df["Dry Wt (g)"] / df["Wet Wt (g)"]
+df["Biomass (kg/ha)"] = (df["Weight in kg"] * df["Dry Matter"]) / df["Area (m²)"] * 10000
+df["Residual Dry Wt (kg/ha)"] = 950
+df["Total Biomass (kg/ha)"] = df["Biomass (kg/ha)"] + df["Residual Dry Wt (kg/ha)"]
+df = df.dropna(axis=1, how='all')
 
-# Drop the redundant 'Plot' and 'Unnamed: 0' columns
-data.drop(columns=["Unnamed: 0"], inplace=True)
+# # === Load Emlid_PT_Intergrated CSV ===
+# dh = pd.read_csv(latest_pt[0])
+dh = pd.read_csv("Emlid_PT_Integration.csv")
+# === Merge Yield + EMLID ===
+data = pd.merge(df, dh, on=["Plot", "Strip"], how="left")
 
-# Rename height column
+# Drop unwanted columns
+if "Unnamed: 0" in data.columns:
+    data.drop(columns=["Unnamed: 0"], inplace=True)
+
 data.rename(columns={"Average Height": "PT Height (mm)"}, inplace=True)
 
-dw = pd.read_csv("DryWt_10.02.24.csv")
+# === Define preferred column order ===
+preferred_columns = [
+    "Experiment", "Farm", "Coordinates", "Date", "Pre/Post",
+    "Plot", "Strip", "Strip Coordinates", "PT Height (mm)"
+]
 
-# Ensure 'Plot' columns are of the same type (e.g., convert both to string)
-dw['Plot'] = dw['Plot'].astype(str)
-data['Plot'] = data['Plot'].astype(str)
+# === Remove duplicate 'Date' columns ===
+# This ensures only one 'Date' column exists
+data = data.loc[:, ~data.columns.duplicated()]
 
+# === Filter columns that actually exist in the DataFrame
+existing_preferred = [col for col in preferred_columns if col in data.columns]
+remaining_columns = [col for col in data.columns if col not in existing_preferred]
 
-# Merging datasets based on Plot and Strip
-ds = pd.merge(
-    data,
-    dw,
-    on=["Plot", "Strip"],
-    how="inner"
-)
+# === Reorder columns
+data = data[existing_preferred + remaining_columns]
 
-# Dropping the specified columns
-ds = ds.drop(columns=["Segment", "date", "NaN"], errors="ignore")
+# === Save final Yield file ===
+date_str = extract_date_key(latest_harvest[0])
+date_str_fmt = f"{date_str[1]:02}-{date_str[2]:02}-{date_str[0]}"
+yield_filename = f"Yield_{date_str_fmt}.csv"
+data.to_csv(yield_filename, index=False)
 
-# Rename the column
-ds.rename(columns={"Wet wt. (g)": "Sub Wet Wt (g)"}, inplace=True)
-
-# Rename the column
-ds.rename(columns={"Dry  wt. (g)": "Sub Dry Wt (g)"}, inplace=True)
-
-# Insert the Width (m) column right after the Length in meters column
-ds.insert(ds.columns.get_loc("Length in meters") + 1, "Width (m)", 0.8128)
-
-# Calculate the area
-ds["Area (m²)"] = ds["Length in meters"] * ds["Width (m)"]
-
-# Insert the Area (m²) column right after the Width (m) column
-ds.insert(ds.columns.get_loc("Width (m)") + 1, "Area (m²)", ds.pop("Area (m²)"))
-
-# Calculate the Dry Matter column
-ds["Dry Matter"] = ds["Sub Dry Wt (g)"] / ds["Sub Wet Wt (g)"]
-
-# Calculate biomass using the formula
-ds["Biomass (kg/ha)"] = (ds["Weight in kg"] * ds["Dry Matter"]) / ds["Area (m²)"] * 10000
-
-# Add the Residual Dry Wt (kg/ha) column with a constant value of 950
-ds["Residual Dry Wt (kg/ha)"] = 950
-
-# Calculate Biomass by adding Yield (Biomass (kg/ha)) and Residue (Residual Dry Wt (kg/ha))
-ds["Total Biomass (kg/ha)"] = ds["Biomass (kg/ha)"] + ds["Residual Dry Wt (kg/ha)"]
-ds = ds.dropna(axis=1, how='all')
-ds.to_csv("Yield_10.02.2024.csv")
-
-# === Upload final Yield file to Google Drive ===
-yield_filename = "Yield_10.02.2024.csv"
-
-upload_file = drive.CreateFile({'title': yield_filename, 'parents': [{'id': folder_id}]})
+# === Upload Yield to Drive ===
+upload_file = drive.CreateFile({'title': yield_filename, 'parents': [{'id': folder_3_id}]})
 upload_file.SetContentFile(yield_filename)
 upload_file.Upload()
 print(f"✅ Yield file uploaded to Google Drive as: {yield_filename}")
 
-# === Gmail API setup ===
+# === Gmail API ===
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
 def gmail_authenticate():
-    """Authenticate using Gmail API and return service"""
     creds = None
     token_file = 'token_gmail.json'
-    creds_file = 'credentials_gmail.json'  # Custom-named Gmail credentials
+    creds_file = 'credentials_gmail.json'
 
     if os.path.exists(token_file):
         creds = Credentials.from_authorized_user_file(token_file, SCOPES)
@@ -229,9 +174,7 @@ def gmail_authenticate():
     return build('gmail', 'v1', credentials=creds)
 
 def send_email_gmail_api(subject, body_text, to_emails, attachment_path=None):
-    """Send email with optional attachment using Gmail API"""
     service = gmail_authenticate()
-
     msg = EmailMessage()
     msg.set_content(body_text)
     msg['To'] = ", ".join(to_emails)
@@ -258,25 +201,17 @@ def send_email_gmail_api(subject, body_text, to_emails, attachment_path=None):
         print("❌ Failed to send email using Gmail API.")
         print(e)
 
-# === Send Yield CSV via Email ===
+# === Send email with attachment ===
 receiver_emails = [
     'darapanenivandana1199@gmail.com',
     'vdzfb@missouri.edu',
-    "bernardocandido@missouri.edu"
-
 ]
 
-subject_success = '✅ Yield Data - Final Output CSV File'
-body_success = 'Hi Team,\n\nPlease find the final Yield CSV output file attached.\n\nRegards,\nAutomated System'
+subject_success = f"✅ Yield Data - {yield_filename}"
+body_success = "Hi Team,\n\nPlease find the final Yield CSV output file attached.\n\nRegards,\nAutomated System"
 
 try:
     send_email_gmail_api(subject_success, body_success, receiver_emails, attachment_path=yield_filename)
 except Exception as e:
     error_trace = traceback.format_exc()
-    body_failure = f"❌ Script execution failed with error:\n\n{error_trace}"
-    send_email_gmail_api('❌ Yield Script Failed', body_failure, receiver_emails)
-
-
-
-
-
+    send_email_gmail_api('❌ Yield Script Failed', f"Script failed:\n{error_trace}", receiver_emails)
