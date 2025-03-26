@@ -10,3 +10,4 @@ google-auth-oauthlib>=0.5.0
 google-auth-httplib2>=0.1.0
 rasterio>=1.2
 rasterstats>=0.15
+pyodbc>=4.0.35
