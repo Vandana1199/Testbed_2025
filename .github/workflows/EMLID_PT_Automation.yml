@@ -36,4 +36,5 @@ jobs:
         MYCREDS_TXT: ${{ secrets.MYCREDS_TXT }}
 
     - name: Run EMLID_PT Script
-      run: python EMLID_PT.py
+      run: python clip&VI's_Weather.py
+
