@@ -742,6 +742,7 @@ receiver_emails = [
     'rashmi.p.sharma@missouri.edu',
     'emh3d9@missouri.edu',
     'bpbf25@mizzou.edu',
+    'vdzzf"
 ]
 
 subject_success = '✅ Final Model Output CSV File'
