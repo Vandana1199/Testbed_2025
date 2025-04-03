@@ -634,7 +634,7 @@ def fetch_and_process_farm_data(clipped_df):
     model_df.reset_index(drop=True, inplace=True)
 
     model_df = model_df.rename(columns={
-        'mean_height':'MeanHeight(mm)',
+        'mean_height':'PT_Height(mm)',
         'ndvi_B0_mean': 'NDVI_mean',
         'gndvi_B0_mean': 'GNDVI_mean',
         'savi_B0_mean': 'SAVI_mean',
@@ -738,18 +738,10 @@ def send_email_gmail_api(subject, body_text, to_emails, attachment_paths=None):
 # === Final Email Execution ===
 receiver_emails = [
     'darapanenivandana1199@gmail.com',
-    'vdzfb@missouri.edu',
-    'ummbv@missouri.edu',
-    'bernardocandido@missouri.edu',
-    'bpbf25@mizzou.edu',
-    'emh3d9@missouri.edu',
-    'rashmi.p.sharma@missouri.edu',
-    'kayanbaptista@gmail.com'
-    
-    
+    'vdzfb@missouri.edu', 
 ]
 
-subject_success = '✅ Height, VI's & Weather Data Output CSV File'
+subject_success = '✅ Final Model Output CSV File'
 body_success = "Hi Team,\n\nPlease find attached file which had EMLID intergrated with PT data along side another file with Clipped height, VI's and Weather Data/PT and Remote sensing processing pipeline.\n\nBest regards,\n Team Testbed"
 
 subject_failure = '❌ Script Execution Failed'
