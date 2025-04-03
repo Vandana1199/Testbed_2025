@@ -749,7 +749,7 @@ receiver_emails = [
     
 ]
 
-subject_success = '✅ Final Model Output CSV File'
+subject_success = '✅ Height, VI's & Weather Data Output CSV File'
 body_success = "Hi Team,\n\nPlease find attached file which had EMLID intergrated with PT data along side another file with Clipped height, VI's and Weather Data/PT and Remote sensing processing pipeline.\n\nBest regards,\n Team Testbed"
 
 subject_failure = '❌ Script Execution Failed'
