@@ -738,7 +738,15 @@ def send_email_gmail_api(subject, body_text, to_emails, attachment_paths=None):
 # === Final Email Execution ===
 receiver_emails = [
     'darapanenivandana1199@gmail.com',
-    'vdzfb@missouri.edu', 
+    'vdzfb@missouri.edu',
+    'ummbv@missouri.edu',
+    'bernardocandido@missouri.edu',
+    'bpbf25@mizzou.edu',
+    'emh3d9@missouri.edu',
+    'rashmi.p.sharma@missouri.edu',
+    'kayanbaptista@gmail.com'
+    
+    
 ]
 
 subject_success = '✅ Final Model Output CSV File'
