@@ -741,11 +741,10 @@ receiver_emails = [
     'vdzfb@missouri.edu', 
     'rashmi.p.sharma@missouri.edu',
     'emh3d9@missouri.edu',
-    'bpbf25@mizzou.edu',
-    'vdzzf"
+    'bpbf25@mizzou.edu'
 ]
 
-subject_success = '✅ Final Model Output CSV File'
+subject_success = "✅ Clipped Height, VI's and Weather data Output CSV File"
 body_success = "Hi Team,\n\nPlease find attached file which had EMLID intergrated with PT data along side another file with Clipped height, VI's and Weather Data/PT and Remote sensing processing pipeline.\n\nBest regards,\n Team Testbed"
 
 subject_failure = '❌ Script Execution Failed'
