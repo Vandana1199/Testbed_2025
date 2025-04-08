@@ -45,7 +45,7 @@ gauth.SaveCredentialsFile("mycreds.txt")
 drive = GoogleDrive(gauth)
 
 # folder ID to connect with the folder inside the drive
-folder_id = '1twSJ1eI_mGUWJpWdO1kjESGKxr22lCj-'
+folder_id = "16HMtw8qijxLL8WhTHv9zRqezFRv1eRtu"
 
 # List all files in the folder
 file_list = drive.ListFile({
@@ -214,7 +214,7 @@ print(f"✅ plot_intersect CSV file saved as {Intfile}")  # Update to print the 
 # Upload plot_intersect file to Google Drive
 upload_plot_intersect_file = drive.CreateFile({
     'title': Intfile,
-    'parents': [{'id': '1BBrJ_H2xJQ9L8NjXd-QiG1tTnWigzI0a'}]  # Specify the folder ID here
+    'parents': [{'id': '1dcThJuXN3kK0Dr2aVBwZFRURicUOc5Sr'}]  # Specify the folder ID here
 })
 upload_plot_intersect_file.SetContentFile(plot_intersect_file)
 upload_plot_intersect_file.Upload()
@@ -256,7 +256,7 @@ os.rename(intermediate_file, final_file)
 print(f"📦 Renamed to: {final_file}")
 
 # === Upload to Google Drive ===
-upload_file = drive.CreateFile({'title': final_file, 'parents': [{'id': '1o0BNrGeds912a2bdJkmUIwvWZPAaPS1J'}]})
+upload_file = drive.CreateFile({'title': final_file, 'parents': [{'id': '1nfKmQMzP5Oio0eWxOXU1tHLzDMG6Vnni'}]})
 upload_file.SetContentFile(final_file)
 upload_file.Upload()
 print(f"✅ Final file uploaded to Google Drive as: {final_file}")
@@ -664,7 +664,7 @@ print(f"📊 Final model data saved as: {final_model_file}")
 # === Upload Final Model CSV to specific Google Drive folder ===
 upload_model_file = drive.CreateFile({
     'title': final_model_file,
-    'parents': [{'id': '1VOQ1pcIKP5-bodGJqGSNKqdP9fIXBJVQ'}]
+    'parents': [{'id': '1eAlkuHwjsV0VxgB3pjRRbU39PgucE1f5'}]
 })
 upload_model_file.SetContentFile(final_model_file)
 upload_model_file.Upload()
@@ -739,12 +739,9 @@ def send_email_gmail_api(subject, body_text, to_emails, attachment_paths=None):
 receiver_emails = [
     'darapanenivandana1199@gmail.com',
     'vdzfb@missouri.edu', 
-    'rashmi.p.sharma@missouri.edu',
-    'emh3d9@missouri.edu',
-    'bpbf25@mizzou.edu'
 ]
 
-subject_success = "✅ Clipped Height, VI's and Weather data Output CSV File"
+subject_success = '✅ Final Model Output CSV File'
 body_success = "Hi Team,\n\nPlease find attached file which had EMLID intergrated with PT data along side another file with Clipped height, VI's and Weather Data/PT and Remote sensing processing pipeline.\n\nBest regards,\n Team Testbed"
 
 subject_failure = '❌ Script Execution Failed'
