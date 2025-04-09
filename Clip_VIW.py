@@ -178,37 +178,17 @@ for (plot_id, strip_id) in corners[['Plot', 'Strip']].drop_duplicates().values:
     # Filter data for the current plot and strip combination
     polygon_data = corners[(corners['Plot'] == plot_id) & (corners['Strip'] == strip_id)]
     
-    # Log the coordinates for debugging purposes
-    coords = polygon_data[['x', 'y']].values.tolist()
-    print(f"Plot: {plot_id}, Strip: {strip_id}, Coordinates: {coords}")
-    
-    # Ensure there are at least 4 coordinates to create a valid polygon
-    if len(coords) < 4:
-        print(f"❌ Not enough coordinates to create a polygon for Plot: {plot_id}, Strip: {strip_id}")
-        continue  # Skip this plot/strip combination
-    
-    # Check for missing or malformed coordinates
-    if any(coord is None or len(coord) != 2 for coord in coords):
-        print(f"❌ Invalid coordinates for Plot: {plot_id}, Strip: {strip_id}")
-        continue  # Skip this plot/strip combination
-    
     # Add strip information to the list
     strips.append(strip_id)
     
-    # Create a closed polygon by repeating the first coordinate at the end
+    # Create a closed polygon
     closed_polygon = pd.concat([polygon_data, polygon_data.iloc[[0]]], ignore_index=True)
     coords = closed_polygon[['x', 'y']].values.tolist()
+    polygon = Polygon(coords)
     
-    try:
-        # Create the polygon object
-        polygon = Polygon(coords)
-        
-        # Append polygon and plot ID
-        polygon_list.append(polygon)
-        ids.append(str(plot_id))
-    except Exception as e:
-        print(f"⚠️ Failed to create polygon for Plot: {plot_id}, Strip: {strip_id}. Error: {e}")
-        continue  # Skip this plot/strip combination if polygon creation fails
+    # Append polygon and plot ID
+    polygon_list.append(polygon)
+    ids.append(str(plot_id))
 
 # Create a GeoDataFrame with 'Plot', 'Strip', and 'geometry'
 polygon_gdf = gpd.GeoDataFrame({'Plot': ids, 'Strip': strips, 'geometry': polygon_list}, crs="EPSG:4326")
