@@ -660,7 +660,7 @@ clipped_df = pd.read_csv(final_file)
 model_df = fetch_and_process_farm_data(clipped_df)
 
 # === Save final model output CSV ===
-final_model_file = f"Height_VI's_Weather_{emlid_date_str}.csv"
+final_model_file = f"Height_VIs_Weather_{emlid_date_str}.csv"
 model_df.to_csv(final_model_file, index=False)
 print(f"📊 Final model data saved as: {final_model_file}")
 
