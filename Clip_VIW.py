@@ -668,7 +668,7 @@ upload_model_file = drive.CreateFile({
 })
 upload_model_file.SetContentFile(final_model_file)
 upload_model_file.Upload()
-print(f"✅ Height_VI's_Weather_Data file uploaded to Google Drive folder: {final_model_file}")
+print(f"✅ Final model file uploaded to Google Drive folder: {final_model_file}")
 
 # === Gmail API Scope and Functions ===
 import base64
