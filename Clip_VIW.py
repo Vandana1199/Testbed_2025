@@ -221,8 +221,11 @@ upload_plot_intersect_file.Upload()
 print(f"✅ plot_intersect file uploaded to Google Drive as: {Intfile}")
 
 # Merge the plot_intersect dataframe with polygon_gdf based on the 'plot' column
-result = plot_intersect.merge(polygon_gdf[['Plot', 'geometry']], on='Plot', how='left')
-result = result.rename(columns = {"geometry_x" : "geometry", "geometry_y" : "Coordinates", "date" : "Date"})
+# ✅ FIX: Merge on both Plot and Strip to preserve correct polygons
+result = plot_intersect.merge(polygon_gdf[['Plot', 'Strip', 'geometry']], on=['Plot', 'Strip'], how='left')
+result = result.rename(columns={"geometry_x": "geometry", "geometry_y": "Coordinates", "date": "Date"})
+print("✅ Unique Plot-Strip combinations in result:", result[['Plot', 'Strip', 'Coordinates']].drop_duplicates().shape[0])
+
 
 # === 22. Final height normalization ===
 result['PTdata_cm'] = (result['rawdistance'] * 0.8662) / 100
@@ -668,7 +671,7 @@ upload_model_file = drive.CreateFile({
 })
 upload_model_file.SetContentFile(final_model_file)
 upload_model_file.Upload()
-print(f"✅ Height_VI's_Weather_Data file uploaded to Google Drive folder: {final_model_file}")
+print(f"✅ Final model file uploaded to Google Drive folder: {final_model_file}")
 
 # === Gmail API Scope and Functions ===
 import base64
@@ -741,7 +744,7 @@ receiver_emails = [
     'vdzfb@missouri.edu', 
 ]
 
-subject_success = "✅ Height_VI's_Weather_Data Output CSV File"
+subject_success = '✅ Final Model Output CSV File'
 body_success = "Hi Team,\n\nPlease find attached file which had EMLID intergrated with PT data along side another file with Clipped height, VI's and Weather Data/PT and Remote sensing processing pipeline.\n\nBest regards,\n Team Testbed"
 
 subject_failure = '❌ Script Execution Failed'
