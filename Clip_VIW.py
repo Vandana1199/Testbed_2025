@@ -35,7 +35,13 @@ elif gauth.access_token_expired:
     except Exception as e:
         print(f"❌ Token refresh failed: {e}")
         print("🔑 Refresh failed, starting re-authentication...")
-        gauth.CommandLineAuth()  # Reauthenticate if refresh fails
+        
+                # Optional: remove expired file before reauth
+        if os.path.exists("mycreds.txt"):
+            os.remove("mycreds.txt")
+        gauth = GoogleAuth()  # Recreate the auth object fresh
+        gauth.CommandLineAuth()        
+              
 else:
     print("✅ Token is valid.")
     gauth.Authorize()  # Authorize with valid credentials
@@ -722,10 +728,6 @@ for date in unique_dates:
 for name in field_elements.keys():
     df[name] = df['Date'].dt.date.map(lambda d: weather_data.get(d, {}).get(name))
 
-# Add fixed columns
-df['Experiment'] = 'Testbed'
-df['Pre/Post'] = 'Pre'
-
 # Round necessary columns to 2 decimal places
 cols = ['NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE_mean', 'SRre_mean']
 for col in cols:
@@ -738,7 +740,7 @@ df['unique_id'] = df['unique_id'].astype(str).str.replace(r'\.0', '', regex=True
 
 # Desired column order
 ordered_cols = [
-    'Experiment', 'Date', 'JulianDate', 'Pre/Post',
+    'Date', 'JulianDate',
     'Plot', 'Strip', 'Coordinates', 'Farm_Coordinates', 'PT_Height(mm)', 'unique_id',
     'interval_from', 'interval_to',
     'NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE_mean', 'SRre_mean',
