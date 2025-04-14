@@ -12,3 +12,4 @@ rasterio>=1.2
 rasterstats>=0.15
 pyodbc>=4.0.35
 sentinelhub>=3.8
+beautifulsoup4>=4.9
