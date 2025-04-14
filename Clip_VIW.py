@@ -660,9 +660,71 @@ clipped_df = pd.read_csv(final_file)
 model_df = fetch_and_process_farm_data(clipped_df)
 
 # === Save final model output CSV ===
-final_model_file = f"Height_VIs_Weather_{emlid_date_str}.csv"
+final_model_file = f"Height_VI's_Weather_{emlid_date_str}.csv"
 model_df.to_csv(final_model_file, index=False)
 print(f"📊 Final model data saved as: {final_model_file}")
+
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import re
+from datetime import datetime
+
+def extract_field(station_prefix, date, field_element, field_name):
+    base_url = (
+        "http://agebb.missouri.edu/weather/history/report.asp?"
+        f"station_prefix={station_prefix}"
+        f"&start_month={date.month}&start_day={date.day}&start_year={date.year}"
+        f"&end_month={date.month}&end_day={date.day}&end_year={date.year}"
+        "&period_type=1&convert=1"
+        f"&field_elements={field_element}"
+    )
+
+    response = requests.get(base_url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    pre_text = soup.find('pre').get_text()
+
+    pattern = re.compile(r'\s+(\d+)\s+(\d+)\s+(\d+)\s+([\d.]+)')
+    match = pattern.search(pre_text)
+    
+    if match:
+        return float(match.group(4))
+    return None
+
+
+# Load your CSV
+df = pd.read_csv(final_model_file)  # Replace with your actual CSV path
+df['Date'] = pd.to_datetime(df['Date'])  # Ensure 'Date' column exists
+
+# Get unique dates
+unique_dates = df['Date'].dt.date.unique()
+
+# Station prefix and fields
+station_prefix = 'sfm'
+field_elements = {
+    'Precipitation_inch': 70,
+    'Min_Air_Temperature_F': 51,
+    'Max_Air_Temperature_F': 3,
+    'Avg_Air_Temperature_F': 23
+}
+
+# Prepare a mapping for each date to weather values
+weather_data = {}
+
+for date in unique_dates:
+    values = {}
+    for name, code in field_elements.items():
+        value = extract_field(station_prefix, pd.to_datetime(date), code, name)
+        values[name] = value
+    weather_data[date] = values
+
+# Map values to original DataFrame
+for name in field_elements.keys():
+    df[name] = df['Date'].dt.date.map(lambda d: weather_data.get(d, {}).get(name))
+
+# Overwrite CSV file with updated content
+df.to_csv(final_model_file, index=False)
+print("✅ Final model updated with AGEBB temperature data.")
 
 # === Upload Final Model CSV to specific Google Drive folder ===
 upload_model_file = drive.CreateFile({
