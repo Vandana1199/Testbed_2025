@@ -637,7 +637,7 @@ def fetch_and_process_farm_data(clipped_df):
     model_df.reset_index(drop=True, inplace=True)
 
     model_df = model_df.rename(columns={
-        'mean_height':'PT_Height(mm)',
+        'mean_height':'PT_Height(cm)',
         'ndvi_B0_mean': 'NDVI_mean',
         'gndvi_B0_mean': 'GNDVI_mean',
         'savi_B0_mean': 'SAVI_mean',
@@ -728,9 +728,9 @@ df['Pre/Post'] = 'Pre'
 
 # Round necessary columns to 2 decimal places
 vi_cols = ['NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE_mean', 'SRre_mean']
-df[vi_cols] = df[vi_cols].round(2)
 
-df['PT_Height(mm)'] = df['PT_Height(mm)'].round(2)
+# Convert PT height from cm to mm and round to 2 decimal places
+df['PT_Height(mm)'] = (df['PT_Height(cm)'] * 10).round(2)df[vi_cols] = df[vi_cols].round(2)
 df['unique_id'] = df['unique_id'].astype(str).str.split('.').str[0]
 
 # Desired column order
