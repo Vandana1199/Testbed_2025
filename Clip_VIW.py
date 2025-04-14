@@ -727,11 +727,14 @@ df['Experiment'] = 'Testbed'
 df['Pre/Post'] = 'Pre'
 
 # Round necessary columns to 2 decimal places
-vi_cols = ['NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE_mean', 'SRre_mean']
+cols = ['NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE_mean', 'SRre_mean']
+for col in cols:
+    df[col] = df[col].apply(lambda x: f"{x:.3f}")
 
 # Convert PT height from cm to mm and round to 2 decimal places
-df['PT_Height(mm)'] = (df['PT_Height(cm)'] * 10).round(2)df[vi_cols] = df[vi_cols].round(2)
-df['unique_id'] = df['unique_id'].astype(str).str.split('.').str[0]
+df['PT_Height(mm)'] = (df['PT_Height(cm)'] * 10).round(2)
+df['unique_id'] = df['unique_id'].astype(str).str.replace(r'\.0', '', regex=True)
+
 
 # Desired column order
 ordered_cols = [
