@@ -35,11 +35,6 @@ elif gauth.access_token_expired:
     except Exception as e:
         print(f"❌ Token refresh failed: {e}")
         print("🔑 Refresh failed, starting re-authentication...")
-        
-                # Optional: remove expired file before reauth
-        if os.path.exists("mycreds.txt"):
-            os.remove("mycreds.txt")
-        gauth = GoogleAuth()  # Recreate the auth object fresh
         gauth.CommandLineAuth()        
               
 else:
