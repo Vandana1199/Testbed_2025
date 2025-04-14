@@ -758,7 +758,7 @@ upload_model_file = drive.CreateFile({
 })
 upload_model_file.SetContentFile(final_model_file)
 upload_model_file.Upload()
-print(f"✅ Final model file uploaded to Google Drive folder: {final_model_file}")
+print(f"✅ Final file uploaded to Google Drive folder: {final_model_file}")
 
 # === Gmail API Scope and Functions ===
 import base64
@@ -831,7 +831,7 @@ receiver_emails = [
     'vdzfb@missouri.edu', 
 ]
 
-subject_success = '✅ Final Model Output CSV File'
+subject_success = '✅ Harevst, Vis and weather data CSV File'
 body_success = "Hi Team,\n\nPlease find attached file which had EMLID intergrated with PT data along side another file with Clipped height, VI's and Weather Data/PT and Remote sensing processing pipeline.\n\nBest regards,\n Team Testbed"
 
 subject_failure = '❌ Script Execution Failed'
