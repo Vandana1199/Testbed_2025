@@ -722,6 +722,31 @@ for date in unique_dates:
 for name in field_elements.keys():
     df[name] = df['Date'].dt.date.map(lambda d: weather_data.get(d, {}).get(name))
 
+# Add fixed columns
+df['Experiment'] = 'Testbed'
+df['Pre/Post'] = 'Pre'
+
+# Round necessary columns to 2 decimal places
+vi_cols = ['NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE_mean', 'SRre_mean']
+df[vi_cols] = df[vi_cols].round(2)
+
+df['PT_Height(mm)'] = df['PT_Height(mm)'].round(2)
+df['unique_id'] = df['unique_id'].astype(str).str.split('.').str[0]
+
+# Desired column order
+ordered_cols = [
+    'Experiment', 'Date', 'JulianDate', 'Pre/Post',
+    'Plot', 'Strip', 'Coordinates', 'Farm_Coordinates', 'PT_Height(mm)', 'unique_id',
+    'interval_from', 'interval_to',
+    'NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE_mean', 'SRre_mean',
+    'observation_sum',
+    'prism_normals_sum', 'departure_from_normal_sum', 'percent_of_normal_sum',
+    'Precipitation_inch', 'Min_Air_Temperature_F', 'Max_Air_Temperature_F', 'Avg_Air_Temperature_F'
+]
+
+# Reorder columns
+df = df[ordered_cols]
+
 # Overwrite CSV file with updated content
 df.to_csv(final_model_file, index=False)
 print("✅ Final model updated with AGEBB temperature data.")
