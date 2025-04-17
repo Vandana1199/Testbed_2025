@@ -868,6 +868,12 @@ def send_email_gmail_api(subject, body_text, to_emails, attachment_paths=None):
 receiver_emails = [
     'darapanenivandana1199@gmail.com',
     'vdzfb@missouri.edu', 
+    "ummbv@missouri.edu", 
+    "rashmi.p.sharma@missouri.edu",
+    "kbn8m@missouri.edu",
+    "bernardocandido@missouri.edu",
+    "emh3d9@missouri.edu",
+    "bpbf25@mizzou.edu"
 ]
 
 subject_success = '✅ Harevst, Vis and weather data CSV File'
