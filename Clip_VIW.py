@@ -63,8 +63,8 @@ testbed_file = None
 
 pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
 pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
-# testbed_filename = 'TestBed_StripCorners.csv'
-testbed_filename = "TestBed_PreHarvestCorners_4.15.25.csv"
+testbed_filename = 'TestBed_StripCorners.csv'
+# testbed_filename = "TestBed_PreHarvestCorners_4.15.25.csv"
 
 # Function to sort files by date in filename
 def extract_date_key(filename):
@@ -163,7 +163,7 @@ merged_filtered.dropna()
 
 # # === 17. Read and process plot corners ===
 # Read the CSV file
-corners = pd.read_csv("TestBed_PreHarvestCorners_4.15.25.csv").rename(columns={'Longitude': 'x', 'Latitude': 'y'})
+corners = pd.read_csv("TestBed_StripCorners.csv").rename(columns={'POINT_X': 'x', 'POINT_Y': 'y'})
 # Rename the 'plot' column to 'Plot'
 corners.rename(columns={'PlotArea': 'Plot'}, inplace=True)
 # print(corners.head())
@@ -258,8 +258,8 @@ print("✅ Unique Plot-Strip combinations in result:", result[['Plot', 'Strip', 
 
 
 # === 22. Final height normalization ===
-result['PTdata_cm'] = (result['rawdistance'] * 0.8662) / 100
-result['grass_height_cm'] = 85 - result['PTdata_cm'] - (85 - (result['tare'] * 0.8662 / 100))
+result['PTdata_cm'] = result['rawdistance']
+result['grass_height_cm'] = (result['tare'] - result['PTdata_cm']) * 0.0859536
 
 # Aggregating data by 'plot' and including the required columns
 Emlid_PT_Intergrated = result.groupby(['Plot', 'Strip']).agg(
@@ -768,7 +768,7 @@ for col in cols:
     df[col] = df[col].apply(lambda x: f"{x:.3f}")
 
 # Convert PT height from cm to mm and round to 2 decimal places
-df['PT_Height(mm)'] = (df['PT_Height(cm)'] * 10).round(2)
+df['PT_Height(mm)'] = (df['PT_Height(cm)']).round(2)
 df['unique_id'] = df['unique_id'].astype(str).str.replace(r'\.0', '', regex=True)
 
 
@@ -868,12 +868,6 @@ def send_email_gmail_api(subject, body_text, to_emails, attachment_paths=None):
 receiver_emails = [
     'darapanenivandana1199@gmail.com',
     'vdzfb@missouri.edu', 
-    "ummbv@missouri.edu", 
-    "rashmi.p.sharma@missouri.edu",
-    "kbn8m@missouri.edu",
-    "bernardocandido@missouri.edu",
-    "emh3d9@missouri.edu",
-    "bpbf25@mizzou.edu"
 ]
 
 subject_success = '✅ Harevst, Vis and weather data CSV File'
