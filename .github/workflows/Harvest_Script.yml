@@ -36,4 +36,4 @@ jobs:
         MYCREDS_NEW_TXT: ${{ secrets.MYCREDS_NEW_TXT }}
 
     - name: Run Harvest + EMLID_PT Script
-      run: python Harvest_Data_Script_Oct2nd.py
+      run: python Harvest_Script.py
