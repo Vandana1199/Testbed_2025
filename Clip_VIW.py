@@ -63,7 +63,7 @@ testbed_file = None
 
 pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
 pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
-testbed_filename = 'TestBed_StripCorners.csv'
+testbed_filename = 'Corners_5.5.25.csv'
 # testbed_filename = "TestBed_PreHarvestCorners_4.15.25.csv"
 
 # Function to sort files by date in filename
@@ -163,7 +163,7 @@ merged_filtered.dropna()
 
 # # === 17. Read and process plot corners ===
 # Read the CSV file
-corners = pd.read_csv("TestBed_StripCorners.csv").rename(columns={'POINT_X': 'x', 'POINT_Y': 'y'})
+corners = pd.read_csv("Corners_5.5.25.csv").rename(columns={'POINT_X': 'x', 'POINT_Y': 'y'})
 # Rename the 'plot' column to 'Plot'
 corners.rename(columns={'PlotArea': 'Plot'}, inplace=True)
 # print(corners.head())
