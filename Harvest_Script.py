@@ -115,7 +115,7 @@ df.insert(df.columns.get_loc("Width (m)") + 1, "Area (m²)", df.pop("Area (m²)"
 # df ["Dry Wt (g)"] = df["DW + bag (g)"] - df["Dry bag wt. (g)"]
 # df["Wet Wt (g)"] = df["WW + bag (g)"] - df["Wet bag wt. (g)"]
 # 1. Compute Dry Matter as float, rounded
-df["Dry Matter %"] = (df["Dry wt. (g)"] / df["Wet wt. (g)"]).round(2)
+df["Dry Matter %"] = (df["Dry  wt. (g)"] / df["Wet wt. (g)"]).round(2)
 
 # 2. Compute Total Biomass as float, rounded
 df["Total Biomass (kg/ha)"] = (
