@@ -125,7 +125,7 @@ df["Total Biomass (kg/ha)"] = (
 # 3. Optional: format as string ONLY if needed before export
 df["Dry Matter %"] = df["Dry Matter %"].map(lambda x: f"{x:.2f}")
 df["Total Biomass (kg/ha)"] = df["Total Biomass (kg/ha)"].map(lambda x: f"{x:.2f}")
-df["Residual Dry Wt (kg/ha)"] = 1056
+df["Residual Dry Wt (kg/ha)"] = "1056"
 df["Total Biomass (kg/ha)"] = df["Total Biomass (kg/ha)"] + df["Residual Dry Wt (kg/ha)"]
 df = df.dropna(axis=1, how='all')
 
