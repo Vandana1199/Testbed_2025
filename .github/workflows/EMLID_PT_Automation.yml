@@ -2,8 +2,6 @@ name: Automate EMLID_PT Script
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: " " 
 
 jobs:
   run-emlid-script:
