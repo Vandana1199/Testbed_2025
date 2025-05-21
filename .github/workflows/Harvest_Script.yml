@@ -3,7 +3,7 @@ name: Automate Harvest + EMLID_PT Script
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 21 * * 2"  # Runs every Tuesday at 9 PM UTC
+    - cron: " "  # Runs every Tuesday at 9 PM UTC
 
 jobs:
   run-harvest-emlid-script:
