@@ -127,7 +127,7 @@ df["Total Biomass (kg/ha)"] = (
 # df["Total Biomass (kg/ha)"] = df["Total Biomass (kg/ha)"].map(lambda x: f"{x:.2f}")
 # Convert to float if previously formatted as strings
 df["Total Biomass (kg/ha)"] = df["Total Biomass (kg/ha)"].astype(int)
-df["Residual Dry Wt (kg/ha)"] = 1056
+df["Residual Dry Wt (kg/ha)"] = 980
 df["Total Biomass (kg/ha)"] = (df["Total Biomass (kg/ha)"] + df["Residual Dry Wt (kg/ha)"])
 df = df.dropna(axis=1, how='all')
 
