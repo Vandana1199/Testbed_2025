@@ -437,18 +437,18 @@ def fetch_and_process_farm_data(clipped_df):
     ndvi_requests = []
 
     # Iterate over each row in the GeoDataFrame
-for index, row in gdf.iterrows():
-    if pd.notnull(row['Img_date']):
-        # Define the time interval for each row (5-day interval before Img_date)
-        start_date = (row['Img_date'] - timedelta(days=5)).strftime('%Y-%m-%d')
-        end_date = row['Img_date'].strftime('%Y-%m-%d')
+    for index, row in gdf.iterrows():
+        if pd.notnull(row['Img_date']):
+            # Define the time interval for each row (5-day interval before Img_date)
+            start_date = (row['Img_date'] - timedelta(days=5)).strftime('%Y-%m-%d')
+            end_date = row['Img_date'].strftime('%Y-%m-%d')
         
         # Continue with your processing logic here using start_date and end_date
 
-    else:
-        # Skip the row or handle missing date case
-        print(f"Skipping row {index} due to missing Img_date")
-        continue  # or handle it differently if needed
+        else:
+            # Skip the row or handle missing date case
+            print(f"Skipping row {index} due to missing Img_date")
+            continue  # or handle it differently if needed
 
 
         time_interval = (start_date, end_date)
