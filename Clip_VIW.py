@@ -527,7 +527,7 @@ def fetch_and_process_farm_data(clipped_df):
     ]
     
     combined_df = pd.concat(ndvi_dfs, ignore_index=True)
-    # print(combined_df)
+    print(combined_df)
     
     combined1_df = combined_df
     # Convert interval_to to datetime for proper sorting
@@ -798,97 +798,4 @@ upload_model_file = drive.CreateFile({
 upload_model_file.SetContentFile(final_model_file)
 upload_model_file.Upload()
 print(f"✅ Final file uploaded to Google Drive folder: {final_model_file}")
-
-# === Gmail API Scope and Functions ===
-import base64
-import os
-import traceback
-from email.message import EmailMessage
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-
-SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-
-def gmail_authenticate():
-    """Authenticate using Gmail API and return service"""
-    creds = None
-    token_file = 'token_gmail.json'
-    creds_file = 'credentials_gmail.json'
-
-    if os.path.exists(token_file):
-        creds = Credentials.from_authorized_user_file(token_file, SCOPES)
-
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(creds_file, SCOPES)
-            creds = flow.run_local_server(port=0)
-
-        with open(token_file, 'w') as token:
-            token.write(creds.to_json())
-
-    return build('gmail', 'v1', credentials=creds)
-
-
-def send_email_gmail_api(subject, body_text, to_emails, attachment_paths=None):
-    """Send email with multiple optional attachments using Gmail API"""
-    service = gmail_authenticate()
-
-    msg = EmailMessage()
-    msg.set_content(body_text)
-    msg['To'] = ", ".join(to_emails)
-    msg['From'] = "me"
-    msg['Subject'] = subject
-
-    if attachment_paths:
-        for attachment_path in attachment_paths:
-            try:
-                with open(attachment_path, 'rb') as f:
-                    file_data = f.read()
-                    file_name = os.path.basename(attachment_path)
-                msg.add_attachment(file_data, maintype='application', subtype='octet-stream', filename=file_name)
-            except Exception as file_err:
-                print(f"⚠️ Failed to attach file {attachment_path}: {file_err}")
-                msg.set_content(f"{body_text}\n\n⚠️ Failed to attach file: {file_err}")
-
-    encoded_message = base64.urlsafe_b64encode(msg.as_bytes()).decode()
-    send_message = {'raw': encoded_message}
-
-    try:
-        service.users().messages().send(userId="me", body=send_message).execute()
-        print("✅ Email sent via Gmail API!")
-    except Exception as e:
-        print("❌ Failed to send email using Gmail API.")
-        print(e)
-
-# === Final Email Execution ===
-receiver_emails = [
-    "darapanenivandana1199@gmail.com",
-    # "vdzfb@missouri.edu", 
-    # "bernardocandido@missouri.edu",
-    # "emh3d9@missouri.edu",
-    # "ummbv@missouri.edu",
-    # "rashmi.p.sharma@missouri.edu",
-    # "bpbf25@mizzou.edu",
-    # "kbn8m@missouri.edu"
-]
-
-subject_success = '✅ Harevst, Vis and weather data CSV File'
-body_success = "Hi Team,\n\nPlease find attached file which had EMLID intergrated with PT data along side another file with Clipped height, VI's and Weather Data/PT and Remote sensing processing pipeline.\n\nBest regards,\n Team Testbed"
-
-subject_failure = '❌ Script Execution Failed'
-body_failure = 'Hi Team,\n\nThe script encountered an error during execution. Please see the traceback below:\n\n'
-
-# List of files to attach
-attachment_paths = [final_model_file, "Raw_PT_Data.csv"]  # Add your file paths here
-
-try:
-    send_email_gmail_api(subject_success, body_success, receiver_emails, attachment_paths=attachment_paths)
-except Exception as e:
-    error_trace = traceback.format_exc()
-    full_body = body_failure + error_trace
-    send_email_gmail_api(subject_failure, full_body, receiver_emails)
 
