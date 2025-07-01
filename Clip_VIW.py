@@ -439,7 +439,7 @@ def fetch_and_process_farm_data(clipped_df):
     # Iterate over each row in the GeoDataFrame
     for index, row in gdf.iterrows():
         # Define the time interval for each row (1 day interval around Image_Acquisition_date)
-        start_date = (row['Img_date'] - timedelta(days=6)).strftime('%Y-%m-%d')
+        start_date = (row['Img_date'] - timedelta(days=5)).strftime('%Y-%m-%d')
         end_date = (row['Img_date']).strftime('%Y-%m-%d')
 
         time_interval = (start_date, end_date)
