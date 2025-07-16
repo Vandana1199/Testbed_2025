@@ -146,7 +146,6 @@ PT_merge = PT_scaled[['rawdistance', 'scaled_time', "tare", 'date']].copy()
 PT_merge['scaled_time2'] = PT_merge['scaled_time'].astype('int64') // 10**9
 PT_merge['ID'] = PT_merge.groupby('scaled_time2').cumcount() + 1
 PT_merge['scaled_time'] = PT_merge['scaled_time'].dt.strftime('%H:%M:%S')
-# GPS['scaled_time'] = pd.to_datetime(GPS['GPST'], format="%I:%M:%S %p").dt.strftime("%H:%M:%S")
 GPS['scaled_time'] = pd.to_datetime(GPS['GPST'], format="%H:%M:%S", errors='coerce').dt.strftime("%H:%M:%S")
 GPS['scaled_time2'] = GPS['scaled_time'].str.replace(':', '').astype(int)
 GPS['ID'] = GPS.groupby('scaled_time2').cumcount() + 1
@@ -173,7 +172,6 @@ corners.rename(columns={'PlotArea': 'Plot'}, inplace=True)
 polygon_list = []
 ids = []
 strips = []
-
 
 
 # Iterate through unique Plot and Strip combinations
@@ -209,29 +207,29 @@ PT_gdf = gpd.GeoDataFrame(merged_filtered_clean, geometry=gpd.points_from_xy(mer
 plot_intersect_full = gpd.sjoin(PT_gdf, polygon_gdf, how='inner', predicate='within')
 
 # Sort for chronological safety
-plot_intersect_full = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
+plot_intersect = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
 
-# Store first 4 and last 6 readings per Plot-Strip
-dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
-dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(10)
+# # Store first 4 and last 6 readings per Plot-Strip
+# dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(0)
+# dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(0)
 
-# Drop them from main data
-plot_intersect = (
-    plot_intersect_full.groupby(['Plot', 'Strip'])
-    .apply(lambda df: df.iloc[4:-10] if len(df) > 10 else df.iloc[0:0])  # Avoid errors on small groups
-    .reset_index(drop=True)
-)
+# # Drop them from main data
+# plot_intersect = (
+#     plot_intersect_full.groupby(['Plot', 'Strip'])
+#     .apply(lambda df: df.iloc[0:0] if len(df) > 10 else df.iloc[0:0])  # Avoid errors on small groups
+#     .reset_index(drop=True)
+# )
 
-# Print dropped readings
-print("📤 Dropped first 4 readings per Plot-Strip:")
-print(dropped_start)
+# # Print dropped readings
+# print("📤 Dropped first 4 readings per Plot-Strip:")
+# print(dropped_start)
 
-print("📤 Dropped last 6 readings per Plot-Strip:")
-print(dropped_end)
+# print("📤 Dropped last 6 readings per Plot-Strip:")
+# print(dropped_end)
 
-# (Optional) Save dropped readings if needed
-dropped_start.to_csv("Dropped_First4_Readings.csv", index=False)
-dropped_end.to_csv("Dropped_Last6_Readings.csv", index=False)
+# # (Optional) Save dropped readings if needed
+# dropped_start.to_csv("Dropped_First4_Readings.csv", index=False)
+# dropped_end.to_csv("Dropped_Last6_Readings.csv", index=False)
 
 # === Upload plot_intersect data to Google Drive ===
 plot_intersect_file = "Raw_PT_Data.csv"
@@ -322,13 +320,14 @@ def fetch_and_process_farm_data(clipped_df):
     config.sh_client_secret = CLIENT_SECRET
 
     # collection_id = "f1b3b558-17a3-4d40-8768-4870cd74cb06" #Anthony bucket
-    collection_id = "d7c0f6f9-284b-4337-b06a-db4d2f2c9350" #testbed_bucket
+    # collection_id = "fb477b0a-47ef-4a8b-b020-19c0d7b35e4f" #testbed_bucket
+    collection_id = "d7c0f6f9-284b-4337-b06a-db4d2f2c9350"
     PlanetScope_data_collection = DataCollection.define_byoc(collection_id)
 
     # df['Coordinates'] = df['Coordinates'].apply(lambda x: Polygon(eval(str(x))))
     df['Coordinates'] = df['Coordinates'].apply(wkt.loads)
     df['Date'] = pd.to_datetime(df['Date'])
-    df['Img_date'] = (df['Date']).dt.strftime('%Y-%m-%d')
+    df['Img_date'] = (df['Date']).dt.strftime("%Y-%m-%d")
 
     gdf = gpd.GeoDataFrame(df, geometry='Coordinates')
     gdf.crs = "EPSG:4326"
@@ -439,18 +438,9 @@ def fetch_and_process_farm_data(clipped_df):
 
     # Iterate over each row in the GeoDataFrame
     for index, row in gdf.iterrows():
-        if pd.notnull(row['Img_date']):
-            # Define the time interval for each row (5-day interval before Img_date)
-            start_date = (row['Img_date'] - timedelta(days=5)).strftime('%Y-%m-%d')
-            end_date = row['Img_date'].strftime('%Y-%m-%d')
-        
-        # Continue with your processing logic here using start_date and end_date
-
-        else:
-            # Skip the row or handle missing date case
-            print(f"Skipping row {index} due to missing Img_date")
-            continue  # or handle it differently if needed
-
+        # Define the time interval for each row (1 day interval around Image_Acquisition_date)
+        start_date = (row['Img_date'] - timedelta(days=5)).strftime('%Y-%m-%d')
+        end_date = (row['Img_date']).strftime('%Y-%m-%d')
 
         time_interval = (start_date, end_date)
 
