@@ -767,9 +767,9 @@ cols = ['NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE
 for col in cols:
     df[col] = df[col].apply(lambda x: f"{x:.3f}")
 
-# Convert PT height from cm to mm and round to 2 decimal places
-df['PT_Height(mm)'] = (df['PT_Height(cm)']).round(2)
-df['unique_id'] = df['unique_id'].astype(str).str.replace(r'\.0', '', regex=True)
+# # Convert PT height from cm to mm and round to 2 decimal places
+# df['PT_Height(mm)'] = (df['PT_Height(cm)']).round(2)
+# df['unique_id'] = df['unique_id'].astype(str).str.replace(r'\.0', '', regex=True)
 
 
 # Desired column order
