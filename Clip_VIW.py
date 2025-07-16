@@ -146,7 +146,8 @@ PT_merge = PT_scaled[['rawdistance', 'scaled_time', "tare", 'date']].copy()
 PT_merge['scaled_time2'] = PT_merge['scaled_time'].astype('int64') // 10**9
 PT_merge['ID'] = PT_merge.groupby('scaled_time2').cumcount() + 1
 PT_merge['scaled_time'] = PT_merge['scaled_time'].dt.strftime('%H:%M:%S')
-GPS['scaled_time'] = pd.to_datetime(GPS['GPST'], format="%I:%M:%S %p").dt.strftime("%H:%M:%S")
+# GPS['scaled_time'] = pd.to_datetime(GPS['GPST'], format="%I:%M:%S %p").dt.strftime("%H:%M:%S")
+GPS['scaled_time'] = pd.to_datetime(GPS['GPST'], format="%H:%M:%S", errors='coerce').dt.strftime("%H:%M:%S")
 GPS['scaled_time2'] = GPS['scaled_time'].str.replace(':', '').astype(int)
 GPS['ID'] = GPS.groupby('scaled_time2').cumcount() + 1
 GPS_merge = GPS[['X', 'Y', 'scaled_time', 'ID']]
