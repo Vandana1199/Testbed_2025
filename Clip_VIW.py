@@ -322,7 +322,7 @@ def fetch_and_process_farm_data(clipped_df):
     config.sh_client_secret = CLIENT_SECRET
 
     # collection_id = "f1b3b558-17a3-4d40-8768-4870cd74cb06" #Anthony bucket
-    collection_id = "fb477b0a-47ef-4a8b-b020-19c0d7b35e4f" #testbed_bucket
+    collection_id = "d7c0f6f9-284b-4337-b06a-db4d2f2c9350" #testbed_bucket
     PlanetScope_data_collection = DataCollection.define_byoc(collection_id)
 
     # df['Coordinates'] = df['Coordinates'].apply(lambda x: Polygon(eval(str(x))))
