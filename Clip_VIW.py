@@ -324,14 +324,13 @@ def fetch_and_process_farm_data(clipped_df):
     config.sh_client_secret = CLIENT_SECRET
 
     # collection_id = "f1b3b558-17a3-4d40-8768-4870cd74cb06" #Anthony bucket
-    # collection_id = "fb477b0a-47ef-4a8b-b020-19c0d7b35e4f" #testbed_bucket
-    collection_id = "d7c0f6f9-284b-4337-b06a-db4d2f2c9350"
+    collection_id = "fb477b0a-47ef-4a8b-b020-19c0d7b35e4f" #testbed_bucket
     PlanetScope_data_collection = DataCollection.define_byoc(collection_id)
 
     # df['Coordinates'] = df['Coordinates'].apply(lambda x: Polygon(eval(str(x))))
     df['Coordinates'] = df['Coordinates'].apply(wkt.loads)
     df['Date'] = pd.to_datetime(df['Date'])
-    df['Img_date'] = (df['Date']).dt.strftime("%Y-%m-%d")
+    df['Img_date'] = (df['Date']).dt.strftime('%Y-%m-%d')
 
     gdf = gpd.GeoDataFrame(df, geometry='Coordinates')
     gdf.crs = "EPSG:4326"
@@ -344,8 +343,8 @@ def fetch_and_process_farm_data(clipped_df):
     input_data = SentinelHubStatistical.input_data(data_collection=PlanetScope_data_collection)
 
     # Define a resolution, below is the minimum pixel size of planet image
-    resx = 3
-    resy = 3
+    resx = 0.00001
+    resy = 0.00001
 
     # Evaluation script to calculate NDVI, GNDVI, EVI, SAVI, and MSAVI
     # Evaluation script to calculate NDVI, GNDVI, EVI, SAVI, and MSAVI
@@ -398,6 +397,26 @@ def fetch_and_process_farm_data(clipped_df):
         },
         {
             id: "SRre",
+            bands: 1
+        },
+        {
+            id: "red",
+            bands: 1
+        },
+        {
+            id: "green",
+            bands: 1
+        },
+        {
+            id: "blue",
+            bands: 1
+        },
+        {
+            id: "nir",
+            bands: 1
+        },
+        {
+            id: "rededge",
             bands: 1
         },
         {
@@ -454,7 +473,7 @@ def fetch_and_process_farm_data(clipped_df):
     # Iterate over each row in the GeoDataFrame
     for index, row in gdf.iterrows():
         # Define the time interval for each row (1 day interval around Image_Acquisition_date)
-        start_date = (row['Img_date'] - timedelta(days=5)).strftime('%Y-%m-%d')
+        start_date = (row['Img_date'] - timedelta(days=6)).strftime('%Y-%m-%d')
         end_date = (row['Img_date']).strftime('%Y-%m-%d')
 
         time_interval = (start_date, end_date)
@@ -472,7 +491,12 @@ def fetch_and_process_farm_data(clipped_df):
             "msavi": {"histograms": {"default": {"nBins": 20, "lowEdge": -1.0, "highEdge": 1.0}}},
             "ndre": {"histograms": {"default": {"nBins": 20, "lowEdge": -1.0, "highEdge": 1.0}}},
             "Clre": {"histograms": {"default": {"nBins": 20, "lowEdge": -1.0, "highEdge": 1.0}}},
-            "SRre": {"histograms": {"default": {"nBins": 20, "lowEdge": -1.0, "highEdge": 1.0}}}
+            "SRre": {"histograms": {"default": {"nBins": 20, "lowEdge": -1.0, "highEdge": 1.0}}},
+            "red": {"histograms": {"default": {"nBins": 20, "lowEdge": -1.0, "highEdge": 1.0}}},
+            "green": {"histograms": {"default": {"nBins": 20, "lowEdge": -1.0, "highEdge": 1.0}}},
+            "blue": {"histograms": {"default": {"nBins": 20, "lowEdge": -1.0, "highEdge": 1.0}}},
+            "nir": {"histograms": {"default": {"nBins": 20, "lowEdge": -1.0, "highEdge": 1.0}}},
+            "rededge": {"histograms": {"default": {"nBins": 20, "lowEdge": -1.0, "highEdge": 1.0}}},
         }
 
         # Define the request
@@ -668,14 +692,15 @@ def fetch_and_process_farm_data(clipped_df):
 # print(final_df1.head())
 
 
-
     model_df=final_df[['Plot', 'Strip', 'mean_height', 'Coordinates', 'Date','Farm_Coordinates', 'unique_id',
-                    "interval_from","interval_to","savi_B0_mean", "ndvi_B0_mean","msavi_B0_mean",
+                    "interval_from","interval_to","savi_B0_mean", "ndvi_B0_mean","msavi_B0_mean", "evi_B0_mean",
                     "gndvi_B0_mean","ndre_B0_mean","Clre_B0_mean","SRre_B0_mean",
+                    "red_B0_mean","green_B0_mean","blue_B0_mean","nir_B0_mean","rededge_B0_mean",
                     "observation_sum","prism_normals_sum","departure_from_normal_sum","percent_of_normal_sum"  ]]
 
     model_df.dropna(subset=['mean_height', "savi_B0_mean","ndvi_B0_mean","msavi_B0_mean","gndvi_B0_mean",
-                            "ndre_B0_mean","Clre_B0_mean","SRre_B0_mean",
+                            "ndre_B0_mean","Clre_B0_mean","SRre_B0_mean", "evi_B0_mean",
+                        "red_B0_mean","green_B0_mean","blue_B0_mean","nir_B0_mean","rededge_B0_mean",
                         "observation_sum","prism_normals_sum","departure_from_normal_sum","percent_of_normal_sum"
                         ], inplace=True)
 
@@ -685,17 +710,24 @@ def fetch_and_process_farm_data(clipped_df):
         'mean_height':'PT_Height(cm)',
         'ndvi_B0_mean': 'NDVI_mean',
         'gndvi_B0_mean': 'GNDVI_mean',
+        'evi_B0_mean': 'EVI_mean',
         'savi_B0_mean': 'SAVI_mean',
         'msavi_B0_mean': 'MSAVI_mean',
         'ndre_B0_mean': 'NDRE_mean',
         'Clre_B0_mean': 'CLRE_mean',
-        'SRre_B0_mean': 'SRre_mean'
+        'SRre_B0_mean': 'SRre_mean',
+        'red_B0_mean': 'red_mean',
+        'green_B0_mean': 'green_mean',
+        'blue_B0_mean': 'blue_mean',
+        'nir_B0_mean': 'nir_mean',
+        'rededge_B0_mean': 'rededge_mean'
         
     })
     model_df['JulianDate'] = pd.to_datetime(model_df['Date'], errors='coerce').dt.dayofyear
 
     
     return model_df
+
 
 # ✅ Place this here:
 # === Now use the file in the next step ===
@@ -778,7 +810,8 @@ df['Base_Temp_C'] = 4.4
 df['GDD'] = ((df['Max_Temp_C'] + df['Min_Temp_C']) / 2 - df['Base_Temp_C']).apply(lambda x: x if x > 0 else 0).round(2)
 
 # Round necessary columns to 2 decimal places
-cols = ['NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE_mean', 'SRre_mean']
+cols = ['NDVI_mean', 'GNDVI_mean', 'EVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE_mean', 'SRre_mean', 'red_mean',
+    'green_mean', 'blue_mean', 'nir_mean', 'rededge_mean']
 for col in cols:
     df[col] = df[col].apply(lambda x: f"{x:.3f}")
 
@@ -792,7 +825,8 @@ ordered_cols = [
     'Date', 'JulianDate',
     'Plot', 'Strip', 'Coordinates', 'Farm_Coordinates', 'PT_Height(mm)', 'unique_id',
     'interval_from', 'interval_to',
-    'NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE_mean', 'SRre_mean',
+    'NDVI_mean', 'GNDVI_mean', 'EVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE_mean', 'SRre_mean', 'red_mean',
+    'green_mean', 'blue_mean', 'nir_mean', 'rededge_mean', 
     'observation_sum', 'prism_normals_sum', 'departure_from_normal_sum', 'percent_of_normal_sum',
     'Precipitation_inch', 'Min_Air_Temperature_F', 'Max_Air_Temperature_F', 'Avg_Air_Temperature_F',
     'Min_Temp_C', 'Max_Temp_C', 'Base_Temp_C', 'GDD'
