@@ -63,7 +63,6 @@ testbed_file = None
 
 pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
 pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
-# testbed_filename = 'TestBed_StripCorners.csv'
 testbed_filename = 'Warrensburg_Corners_7.2.25.csv'
 
 # Function to sort files by date in filename
@@ -146,7 +145,7 @@ PT_merge = PT_scaled[['rawdistance', 'scaled_time', "tare", 'date']].copy()
 PT_merge['scaled_time2'] = PT_merge['scaled_time'].astype('int64') // 10**9
 PT_merge['ID'] = PT_merge.groupby('scaled_time2').cumcount() + 1
 PT_merge['scaled_time'] = PT_merge['scaled_time'].dt.strftime('%H:%M:%S')
-GPS['scaled_time'] = pd.to_datetime(GPS['GPST'], format="%H:%M:%S", errors='coerce').dt.strftime("%H:%M:%S")
+GPS['scaled_time'] = pd.to_datetime(GPS['GPST'], format="%H:%M:%S").dt.strftime("%H:%M:%S")
 GPS['scaled_time2'] = GPS['scaled_time'].str.replace(':', '').astype(int)
 GPS['ID'] = GPS.groupby('scaled_time2').cumcount() + 1
 GPS_merge = GPS[['X', 'Y', 'scaled_time', 'ID']]
@@ -154,7 +153,6 @@ GPS_merge = GPS[['X', 'Y', 'scaled_time', 'ID']]
 # === 14. Merge PT and GPS ===
 merged_data = pd.merge(PT_merge, GPS_merge, how='outer', on=['scaled_time', 'ID'])
 merged_data = merged_data.ffill()
-
 
 # ✅ Save raw PT GeoDataFrame before any spatial join
 prejoin_file = "Raw_PT_Data_PreJoin.csv"
@@ -417,13 +415,19 @@ def fetch_and_process_farm_data(clipped_df):
     function evaluatePixel(samples) {
     let ndvi = (samples.nir - samples.red) / (samples.nir + samples.red);
     let gndvi = (samples.nir - samples.green) / (samples.nir + samples.green);
-    let evi = 2.5 * (samples.nir - samples.red) / (samples.nir + 6.0 * samples.red - 7.5 * samples.blue + 1.0);
+    let evi = 2.5 * (samples.nir - samples.red) / (samples.nir + 6.0 * samples.red - 7.5 * samples.blue + (1.0*10000));
     let L = 0.5;
-    let savi = (samples.nir - samples.red) * (1 + L) / (samples.nir + samples.red + L);
-    let msavi = (2 * samples.nir + 1 - Math.sqrt((2 * samples.nir + 1) * (2 * samples.nir + 1) - 8 * (samples.nir - samples.red))) / 2;
+    let savi = (samples.nir - samples.red) * (1 + L) / (samples.nir + samples.red + (L*10000));
+    let s = 10000; 
+    let msavi = (2 * (samples.nir/s) + 1 - Math.sqrt((2 * (samples.nir/s) + 1) * (2 * (samples.nir/s) + 1) - 8 * ((samples.nir/s) - (samples.red/s)))) / 2;
     let ndre = (samples.nir - samples.rededge) / (samples.nir + samples.rededge);
     let Clre = ((samples.nir / samples.rededge)-1);
     let SRre = (samples.nir / samples.rededge);
+    let red = samples.red/s;
+    let green = samples.green/s;
+    let blue = samples.blue/s;
+    let nir = samples.nir/s;
+    let rededge = samples.rededge/s;
 
     return {
         ndvi: [ndvi],
@@ -434,6 +438,11 @@ def fetch_and_process_farm_data(clipped_df):
         ndre: [ndre],
         Clre: [Clre],
         SRre: [SRre],
+        red: [red],
+        green: [green],
+        blue: [blue],
+        nir: [nir],
+        rededge: [rededge],
         dataMask: [samples.dataMask]
     };
     }
@@ -665,7 +674,7 @@ def fetch_and_process_farm_data(clipped_df):
                     "gndvi_B0_mean","ndre_B0_mean","Clre_B0_mean","SRre_B0_mean",
                     "observation_sum","prism_normals_sum","departure_from_normal_sum","percent_of_normal_sum"  ]]
 
-    model_df.dropna(subset=[ "savi_B0_mean","ndvi_B0_mean","msavi_B0_mean","gndvi_B0_mean",
+    model_df.dropna(subset=['mean_height', "savi_B0_mean","ndvi_B0_mean","msavi_B0_mean","gndvi_B0_mean",
                             "ndre_B0_mean","Clre_B0_mean","SRre_B0_mean",
                         "observation_sum","prism_normals_sum","departure_from_normal_sum","percent_of_normal_sum"
                         ], inplace=True)
@@ -773,9 +782,9 @@ cols = ['NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean', 'NDRE_mean', 'CLRE
 for col in cols:
     df[col] = df[col].apply(lambda x: f"{x:.3f}")
 
-# # Convert PT height from cm to mm and round to 2 decimal places
-# df['PT_Height(mm)'] = (df['PT_Height(cm)']).round(2)
-# df['unique_id'] = df['unique_id'].astype(str).str.replace(r'\.0', '', regex=True)
+# Convert PT height from cm to mm and round to 2 decimal places
+df['PT_Height(mm)'] = (df['PT_Height(cm)']).round(2)
+df['unique_id'] = df['unique_id'].astype(str).str.replace(r'\.0', '', regex=True)
 
 
 # Desired column order
