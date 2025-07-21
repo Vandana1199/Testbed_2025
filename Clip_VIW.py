@@ -233,7 +233,7 @@ plot_intersect = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
 
 # === Upload plot_intersect data to Google Drive ===
 plot_intersect_file = "Raw_PT_Data.csv"
-plot_intersect.to_csv(merged_filtered_clean, index=False)
+plot_intersect.to_csv("merged_filtered_clean", index=False)
 
 # Incorporate the date from emlid_date_str into the filename
 emlid_date_str = re.search(r'(\d+\.\d+\.\d+)', latest_emlid[0]).group(1)  # Extract date from the latest EMLID file
