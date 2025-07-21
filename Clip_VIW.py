@@ -155,6 +155,12 @@ GPS_merge = GPS[['X', 'Y', 'scaled_time', 'ID']]
 merged_data = pd.merge(PT_merge, GPS_merge, how='outer', on=['scaled_time', 'ID'])
 merged_data = merged_data.ffill()
 
+
+# ✅ Save raw PT GeoDataFrame before any spatial join
+prejoin_file = "Raw_PT_Data_PreJoin.csv"
+merged_data.to_csv(prejoin_file, index=False)  # Drop geometry for cleaner CSV
+print(f"📁 Saved raw PT data before spatial join to: {prejoin_file}")
+
 # === 15. Filter relevant columns ===
 merged_filtered = merged_data[['rawdistance', 'X', 'Y', 'scaled_time', 'tare', "date"]].rename(columns={'scaled_time': 'time'})
 merged_filtered
@@ -659,7 +665,7 @@ def fetch_and_process_farm_data(clipped_df):
                     "gndvi_B0_mean","ndre_B0_mean","Clre_B0_mean","SRre_B0_mean",
                     "observation_sum","prism_normals_sum","departure_from_normal_sum","percent_of_normal_sum"  ]]
 
-    model_df.dropna(subset=['mean_height', "savi_B0_mean","ndvi_B0_mean","msavi_B0_mean","gndvi_B0_mean",
+    model_df.dropna(subset=[ "savi_B0_mean","ndvi_B0_mean","msavi_B0_mean","gndvi_B0_mean",
                             "ndre_B0_mean","Clre_B0_mean","SRre_B0_mean",
                         "observation_sum","prism_normals_sum","departure_from_normal_sum","percent_of_normal_sum"
                         ], inplace=True)
