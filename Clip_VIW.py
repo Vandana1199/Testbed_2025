@@ -154,10 +154,10 @@ GPS_merge = GPS[['X', 'Y', 'scaled_time', 'ID']]
 merged_data = pd.merge(PT_merge, GPS_merge, how='outer', on=['scaled_time', 'ID'])
 merged_data = merged_data.ffill()
 
-# ✅ Save raw PT GeoDataFrame before any spatial join
-prejoin_file = "Raw_PT_Data_PreJoin.csv"
-merged_data.to_csv(prejoin_file, index=False)  # Drop geometry for cleaner CSV
-print(f"📁 Saved raw PT data before spatial join to: {prejoin_file}")
+# # ✅ Save raw PT GeoDataFrame before any spatial join
+# prejoin_file = "Raw_PT_Data_PreJoin.csv"
+# merged_data.to_csv(prejoin_file, index=False)  # Drop geometry for cleaner CSV
+# print(f"📁 Saved raw PT data before spatial join to: {prejoin_file}")
 
 # === 15. Filter relevant columns ===
 merged_filtered = merged_data[['rawdistance', 'X', 'Y', 'scaled_time', 'tare', "date"]].rename(columns={'scaled_time': 'time'})
@@ -324,7 +324,7 @@ def fetch_and_process_farm_data(clipped_df):
     config.sh_client_secret = CLIENT_SECRET
 
     # collection_id = "f1b3b558-17a3-4d40-8768-4870cd74cb06" #Anthony bucket
-    collection_id = "fb477b0a-47ef-4a8b-b020-19c0d7b35e4f" #testbed_bucket
+    collection_id = "d7c0f6f9-284b-4337-b06a-db4d2f2c9350" #testbed_bucket
     PlanetScope_data_collection = DataCollection.define_byoc(collection_id)
 
     # df['Coordinates'] = df['Coordinates'].apply(lambda x: Polygon(eval(str(x))))
@@ -847,4 +847,3 @@ upload_model_file = drive.CreateFile({
 upload_model_file.SetContentFile(final_model_file)
 upload_model_file.Upload()
 print(f"✅ Final file uploaded to Google Drive folder: {final_model_file}")
-
