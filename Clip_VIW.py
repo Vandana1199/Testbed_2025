@@ -211,13 +211,13 @@ plot_intersect_full = gpd.sjoin(PT_gdf, polygon_gdf, how='inner', predicate='wit
 plot_intersect = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
 
 # # Store first 4 and last 6 readings per Plot-Strip
-# dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(0)
-# dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(0)
+# dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
+# dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(6)
 
 # # Drop them from main data
 # plot_intersect = (
 #     plot_intersect_full.groupby(['Plot', 'Strip'])
-#     .apply(lambda df: df.iloc[0:0] if len(df) > 10 else df.iloc[0:0])  # Avoid errors on small groups
+#     .apply(lambda df: df.iloc[4:-6] if len(df) > 10 else df.iloc[0:0])  # Avoid errors on small groups
 #     .reset_index(drop=True)
 # )
 
