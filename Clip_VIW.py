@@ -573,7 +573,7 @@ def fetch_and_process_farm_data(clipped_df):
     # Assign rank within each original_index group based on interval_to descending
     combined1_df["rank"] = combined1_df.groupby("original_index")["interval_to"].rank(method="dense", ascending=False)
     # Filter only rows where rank == 1
-    df_filtered = combined1_df[combined1_df["rank"] == 1]
+    df_filtered = combined1_df[combined1_df["rank"] == 2]
     # Drop rank column , since it not needed going forward
     df_filtered = df_filtered.drop(columns=["rank"])
     
