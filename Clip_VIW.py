@@ -202,7 +202,7 @@ PT_gdf = gpd.GeoDataFrame(merged_filtered_clean, geometry=gpd.points_from_xy(mer
 # # gpd.options.use_pygeos = False  # to mimic sf::sf_use_s2(FALSE)
 # plot_intersect = gpd.sjoin(PT_gdf, polygon_gdf, how='inner', predicate='within')
 # plot_intersect
-print(PT_gdf)
+
 
 # Intersect
 plot_intersect_full = gpd.sjoin(PT_gdf, polygon_gdf, how='inner', predicate='within')
@@ -212,7 +212,7 @@ plot_intersect = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
 
 # # Store first 4 and last 6 readings per Plot-Strip
 # dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
-# dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(6)
+# dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(10)
 
 # # Drop them from main data
 # plot_intersect = (
