@@ -163,7 +163,7 @@ merged_filtered.dropna()
 
 # # === 17. Read and process plot corners ===
 # Read the CSV file
-corners = pd.read_csv(testbed_filename).rename(columns={'POINT_X': 'x', 'POINT_Y': 'y'})
+corners = pd.read_csv(testbed_filename).rename(columns={'Longitude': 'x', 'Latitude': 'y'})
 # Rename the 'plot' column to 'Plot'
 corners.rename(columns={'PlotArea': 'Plot'}, inplace=True)
 # print(corners.head())
