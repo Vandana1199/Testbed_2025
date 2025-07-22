@@ -217,7 +217,7 @@ plot_intersect = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
 # # Drop them from main data
 # plot_intersect = (
 #     plot_intersect_full.groupby(['Plot', 'Strip'])
-#     .apply(lambda df: df.iloc[4:-6] if len(df) > 10 else df.iloc[0:0])  # Avoid errors on small groups
+#     .apply(lambda df: df.iloc[4:-10] if len(df) > 10 else df.iloc[0:0])  # Avoid errors on small groups
 #     .reset_index(drop=True)
 # )
 
