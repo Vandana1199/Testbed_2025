@@ -63,7 +63,7 @@ testbed_file = None
 
 pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
 pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
-testbed_filename = 'Warrensburg_Corners_7.2.25.csv'
+testbed_filename = 'TestBed_StripCorners.csv'
 
 # Function to sort files by date in filename
 def extract_date_key(filename):
@@ -145,7 +145,8 @@ PT_merge = PT_scaled[['rawdistance', 'scaled_time', "tare", 'date']].copy()
 PT_merge['scaled_time2'] = PT_merge['scaled_time'].astype('int64') // 10**9
 PT_merge['ID'] = PT_merge.groupby('scaled_time2').cumcount() + 1
 PT_merge['scaled_time'] = PT_merge['scaled_time'].dt.strftime('%H:%M:%S')
-GPS['scaled_time'] = pd.to_datetime(GPS['GPST'], format="%H:%M:%S").dt.strftime("%H:%M:%S")
+# GPS['scaled_time'] = pd.to_datetime(GPS['GPST'], format="%H:%M:%S", errors='coerce').dt.strftime("%H:%M:%S")
+GPS['scaled_time'] = pd.to_datetime(GPS['GPST'], format="%I:%M:%S %p").dt.strftime("%H:%M:%S")
 GPS['scaled_time2'] = GPS['scaled_time'].str.replace(':', '').astype(int)
 GPS['ID'] = GPS.groupby('scaled_time2').cumcount() + 1
 GPS_merge = GPS[['X', 'Y', 'scaled_time', 'ID']]
@@ -153,11 +154,6 @@ GPS_merge = GPS[['X', 'Y', 'scaled_time', 'ID']]
 # === 14. Merge PT and GPS ===
 merged_data = pd.merge(PT_merge, GPS_merge, how='outer', on=['scaled_time', 'ID'])
 merged_data = merged_data.ffill()
-
-# # ✅ Save raw PT GeoDataFrame before any spatial join
-# prejoin_file = "Raw_PT_Data_PreJoin.csv"
-# merged_data.to_csv(prejoin_file, index=False)  # Drop geometry for cleaner CSV
-# print(f"📁 Saved raw PT data before spatial join to: {prejoin_file}")
 
 # === 15. Filter relevant columns ===
 merged_filtered = merged_data[['rawdistance', 'X', 'Y', 'scaled_time', 'tare', "date"]].rename(columns={'scaled_time': 'time'})
@@ -206,6 +202,7 @@ PT_gdf = gpd.GeoDataFrame(merged_filtered_clean, geometry=gpd.points_from_xy(mer
 # # gpd.options.use_pygeos = False  # to mimic sf::sf_use_s2(FALSE)
 # plot_intersect = gpd.sjoin(PT_gdf, polygon_gdf, how='inner', predicate='within')
 # plot_intersect
+print(PT_gdf)
 
 # Intersect
 plot_intersect_full = gpd.sjoin(PT_gdf, polygon_gdf, how='inner', predicate='within')
@@ -324,7 +321,7 @@ def fetch_and_process_farm_data(clipped_df):
     config.sh_client_secret = CLIENT_SECRET
 
     # collection_id = "f1b3b558-17a3-4d40-8768-4870cd74cb06" #Anthony bucket
-    collection_id = "d7c0f6f9-284b-4337-b06a-db4d2f2c9350" #testbed_bucket
+    collection_id = "fb477b0a-47ef-4a8b-b020-19c0d7b35e4f" #testbed_bucket
     PlanetScope_data_collection = DataCollection.define_byoc(collection_id)
 
     # df['Coordinates'] = df['Coordinates'].apply(lambda x: Polygon(eval(str(x))))
@@ -847,3 +844,4 @@ upload_model_file = drive.CreateFile({
 upload_model_file.SetContentFile(final_model_file)
 upload_model_file.Upload()
 print(f"✅ Final file uploaded to Google Drive folder: {final_model_file}")
+
