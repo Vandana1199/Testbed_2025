@@ -63,7 +63,7 @@ testbed_file = None
 
 pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
 pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
-testbed_filename = 'TestBed_PreHarvestCorners_4.15.25.csv'
+testbed_filename = 'TestBed_StripCorners.csv'
 
 # Function to sort files by date in filename
 def extract_date_key(filename):
@@ -157,13 +157,14 @@ merged_data = merged_data.ffill()
 
 # === 15. Filter relevant columns ===
 merged_filtered = merged_data[['rawdistance', 'X', 'Y', 'scaled_time', 'tare', "date"]].rename(columns={'scaled_time': 'time'})
-merged_filtered
 merged_filtered.isnull().sum()
 merged_filtered.dropna()
 
 # # === 17. Read and process plot corners ===
 # Read the CSV file
-corners = pd.read_csv(testbed_filename).rename(columns={'Longitude': 'x', 'Latitude': 'y'})
+# corners = pd.read_csv(testbed_filename).rename(columns={'Longitude': 'x', 'Latitude': 'y'})
+corners = pd.read_csv(testbed_filename).rename(columns={'POINT_X': 'x', 'POINT_Y': 'y'})
+
 # Rename the 'plot' column to 'Plot'
 corners.rename(columns={'PlotArea': 'Plot'}, inplace=True)
 # print(corners.head())
@@ -202,7 +203,7 @@ PT_gdf = gpd.GeoDataFrame(merged_filtered_clean, geometry=gpd.points_from_xy(mer
 # # gpd.options.use_pygeos = False  # to mimic sf::sf_use_s2(FALSE)
 # plot_intersect = gpd.sjoin(PT_gdf, polygon_gdf, how='inner', predicate='within')
 # plot_intersect
-
+print(PT_gdf)
 
 # Intersect
 plot_intersect_full = gpd.sjoin(PT_gdf, polygon_gdf, how='inner', predicate='within')
@@ -210,27 +211,27 @@ plot_intersect_full = gpd.sjoin(PT_gdf, polygon_gdf, how='inner', predicate='wit
 # Sort for chronological safety
 plot_intersect = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
 
-# # Store first 4 and last 6 readings per Plot-Strip
-# dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
-# dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(10)
+# Store first 4 and last 6 readings per Plot-Strip
+dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
+dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(6)
 
-# # Drop them from main data
-# plot_intersect = (
-#     plot_intersect_full.groupby(['Plot', 'Strip'])
-#     .apply(lambda df: df.iloc[4:-10] if len(df) > 10 else df.iloc[0:0])  # Avoid errors on small groups
-#     .reset_index(drop=True)
-# )
+# Drop them from main data
+plot_intersect = (
+    plot_intersect_full.groupby(['Plot', 'Strip'])
+    .apply(lambda df: df.iloc[4:-6] if len(df) > 10 else df.iloc[0:0])  # Avoid errors on small groups
+    .reset_index(drop=True)
+)
 
-# # Print dropped readings
-# print("📤 Dropped first 4 readings per Plot-Strip:")
-# print(dropped_start)
+# Print dropped readings
+print("📤 Dropped first 4 readings per Plot-Strip:")
+print(dropped_start)
 
-# print("📤 Dropped last 6 readings per Plot-Strip:")
-# print(dropped_end)
+print("📤 Dropped last 6 readings per Plot-Strip:")
+print(dropped_end)
 
-# # (Optional) Save dropped readings if needed
-# dropped_start.to_csv("Dropped_First4_Readings.csv", index=False)
-# dropped_end.to_csv("Dropped_Last6_Readings.csv", index=False)
+# (Optional) Save dropped readings if needed
+dropped_start.to_csv("Dropped_First4_Readings.csv", index=False)
+dropped_end.to_csv("Dropped_Last6_Readings.csv", index=False)
 
 # === Upload plot_intersect data to Google Drive ===
 plot_intersect_file = "Raw_PT_Data.csv"
