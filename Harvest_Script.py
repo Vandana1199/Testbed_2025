@@ -260,14 +260,14 @@ def send_email_gmail_api(subject, body_text, to_emails, attachment_path=None):
 # === Send email with attachment ===
 receiver_emails = [
     "darapanenivandana1199@gmail.com",
-    "vdzfb@missouri.edu", 
-    "bernardocandido@missouri.edu",
-    "emh3d9@missouri.edu",
-    "ummbv@missouri.edu",
-    "rashmi.p.sharma@missouri.edu",
-    "bpbf25@mizzou.edu",
-    "kbn8m@missouri.edu"
-]
+#     "vdzfb@missouri.edu", 
+#     "bernardocandido@missouri.edu",
+#     "emh3d9@missouri.edu",
+#     "ummbv@missouri.edu",
+#     "rashmi.p.sharma@missouri.edu",
+#     "bpbf25@mizzou.edu",
+#     "kbn8m@missouri.edu"
+# ]
 
 subject_success = f"✅ Yield Data - {yield_filename}"
 body_success = "Hi Team,\n\nPlease find the final Yield CSV output file attached.\n\nRegards,\nAutomated System"
