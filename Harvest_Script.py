@@ -89,18 +89,18 @@ print("📋 Harvest Columns:", df.columns.tolist())
 df.columns = df.columns.str.strip()  # Strip spaces
 
 # rename_dict = {}
-# if "Wet wt. (g)" in df.columns:
-#     rename_dict["Wet wt. (g)"] = "Sub Wet Wt (g)"
+# if "Wet_wt_(g)" in df.columns:
+#     rename_dict["Wet_wt_(g)"] = "Sub Wet Wt (g)"
 # if "Dry wt. (g)" in df.columns:
 #     rename_dict["Dry wt. (g)"] = "Sub Dry Wt (g)"
-# elif "Dry  wt. (g)" in df.columns:
-#     rename_dict["Dry  wt. (g)"] = "Sub Dry Wt (g)"
+# elif "Dry_wt_(g)" in df.columns:
+#     rename_dict["Dry_wt_(g)"] = "Sub Dry Wt (g)"
 
 # df.rename(columns=rename_dict, inplace=True)
 
 # === Clean and calculate ===
-if "HarvesterWeight (kg)" in df.columns:
-    df = df[df["HarvesterWeight (kg)"] >= 0]
+if "HarvesterWeight_(kg)" in df.columns:
+    df = df[df["HarvesterWeight_(kg)"] >= 0]
 
 if "Units" in df.columns:
     del df["Units"]
@@ -110,27 +110,27 @@ if "Units" in df.columns:
 df["unique_id"] = df["Pasture"].astype(str) + "_" + df["Paddock"].astype(str) + "_" + df["Strip"].astype(str)
 
 
-df.insert(df.columns.get_loc("Length (m)") + 1, "Width (m)", 0.8128)
-df["Area (m²)"] = df["Length (m)"] * df["Width (m)"]
-df.insert(df.columns.get_loc("Width (m)") + 1, "Area (m²)", df.pop("Area (m²)"))
+df.insert(df.columns.get_loc("Length_(m)") + 1, "Width_(m)", 0.8128)
+df["Area_(m²)"] = df["Length_(m)"] * df["Width_(m)"]
+df.insert(df.columns.get_loc("Width_(m)") + 1, "Area_(m²)", df.pop("Area_(m²)"))
 
 # df ["Dry Wt (g)"] = df["DW + bag (g)"] - df["Dry bag wt. (g)"]
 # df["Wet Wt (g)"] = df["WW + bag (g)"] - df["Wet bag wt. (g)"]
 # 1. Compute Dry Matter as float, rounded
-df["Dry Matter %"] = (df["Dry  wt. (g)"] / df["Wet wt. (g)"]).round(2)
+df["Dry_Matter_%"] = (df["Dry_wt_(g)"] / df["Wet_wt_(g)"]).round(2)
 
 # 2. Compute Total Biomass as float, rounded
-df["Total Biomass (kg/ha)"] = (
-    (df["HarvesterWeight (kg)"] * df["Dry Matter %"]) / df["Area (m²)"] * 10000
+df["Total_Biomass_(kg/ha)"] = (
+    (df["HarvesterWeight_(kg)"] * df["Dry_Matter_%"]) / df["Area_(m²)"] * 10000
 ).round(2)
 
 # 3. Optional: format as string ONLY if needed before export
-# df["Dry Matter %"] = df["Dry Matter %"].map(lambda x: f"{x:.2f}")
-# df["Total Biomass (kg/ha)"] = df["Total Biomass (kg/ha)"].map(lambda x: f"{x:.2f}")
+# df["Dry_Matter_%"] = df["Dry_Matter_%"].map(lambda x: f"{x:.2f}")
+# df["Total_Biomass_(kg/ha)"] = df["Total_Biomass_(kg/ha)"].map(lambda x: f"{x:.2f}")
 # Convert to float if previously formatted as strings
-df["Total Biomass (kg/ha)"] = df["Total Biomass (kg/ha)"].astype(int)
-df["Residual Dry Wt (kg/ha)"] = 980
-df["Total Biomass (kg/ha)"] = (df["Total Biomass (kg/ha)"] + df["Residual Dry Wt (kg/ha)"])
+df["Total_Biomass_(kg/ha)"] = df["Total_Biomass_(kg/ha)"].astype(int)
+df["Residual_Dry_Wt_(kg/ha)"] = 980
+df["Total_Biomass_(kg/ha)"] = (df["Total_Biomass_(kg/ha)"] + df["Residual_Dry_Wt_(kg/ha)"])
 df = df.dropna(axis=1, how='all')
 
 # # === Load Emlid_PT_Intergrated CSV ===
@@ -166,7 +166,7 @@ preferred_columns = [
     'Strip', 'Coordinates', 'Farm_Coordinates', 'PT_Height(mm)',
     'NDVI_mean', 'GNDVI_mean', 'SAVI_mean', 'MSAVI_mean',
     'NDRE_mean', 'CLRE_mean', 'SRre_mean', 'unique_id',
-    'Dry Matter %', 'Total Biomass (kg/ha)'
+    'Dry_Matter_%', 'Total_Biomass_(kg/ha)'
 ]
 
 # === Remove duplicate 'Date' columns
