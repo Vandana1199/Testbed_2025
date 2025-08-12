@@ -107,7 +107,7 @@ if "Units" in df.columns:
     
 # Generate unique ID in the format: Pasture.Paddock_Strip
 # df["unique_id"] = df["Pasture"].astype(str) + "." + df["Paddock"].astype(str) + "_" + df["Strip"].astype(str)
-df["unique_id"] = df["Pasture"].astype(str) + "_" + df["Paddock"].astype(str) + "_" + df["Strip"].astype(str)
+df["unique_id"] = df["Pasture"].astype(str) + "." + df["Paddock"].astype(str) + "_" + df["Strip"].astype(str)
 
 
 df.insert(df.columns.get_loc("Length_(m)") + 1, "Width_(m)", 0.8128)
