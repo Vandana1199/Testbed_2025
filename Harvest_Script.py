@@ -164,7 +164,7 @@ if "Unnamed: 0" in data.columns:
 preferred_columns = [
     'Experiment', 'Date', 'JulianDate', 'PrePost', 'Plot', 
     'Strip', 'Coordinates', 'Farm_Coordinates', 'PT_Height(mm)',
-    'NDVI_mean', ''EVI_mean',','GNDVI_mean', 'SAVI_mean', 'MSAVI_mean',
+    'NDVI_mean', 'EVI_mean',','GNDVI_mean', 'SAVI_mean', 'MSAVI_mean',
     'NDRE_mean', 'CLRE_mean', 'SRre_mean', 'unique_id',
     'Dry_Matter_%', 'Total_Biomass_(kg/ha)'
 ]
