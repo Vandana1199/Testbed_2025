@@ -323,7 +323,7 @@ def fetch_and_process_farm_data(clipped_df):
     config.sh_client_secret = CLIENT_SECRET
 
     # collection_id = "f1b3b558-17a3-4d40-8768-4870cd74cb06" #Anthony bucket
-    collection_id = "162aa3c4-d048-4ec4-947e-3b22f2e18d96" #testbed_bucket
+    collection_id = "fb477b0a-47ef-4a8b-b020-19c0d7b35e4f" #testbed_bucket
     PlanetScope_data_collection = DataCollection.define_byoc(collection_id)
 
     # df['Coordinates'] = df['Coordinates'].apply(lambda x: Polygon(eval(str(x))))
@@ -846,6 +846,7 @@ upload_model_file = drive.CreateFile({
 upload_model_file.SetContentFile(final_model_file)
 upload_model_file.Upload()
 print(f"✅ Final file uploaded to Google Drive folder: {final_model_file}")
+
 
 
 
