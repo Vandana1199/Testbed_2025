@@ -89,48 +89,56 @@ print("📋 Harvest Columns:", df.columns.tolist())
 df.columns = df.columns.str.strip()  # Strip spaces
 
 # rename_dict = {}
-# if "Wet_wt_(g)" in df.columns:
-#     rename_dict["Wet_wt_(g)"] = "Sub Wet Wt (g)"
+# if "Wet wt. (g)" in df.columns:
+#     rename_dict["Wet wt. (g)"] = "Sub Wet Wt (g)"
 # if "Dry wt. (g)" in df.columns:
 #     rename_dict["Dry wt. (g)"] = "Sub Dry Wt (g)"
-# elif "Dry_wt_(g)" in df.columns:
-#     rename_dict["Dry_wt_(g)"] = "Sub Dry Wt (g)"
+# elif "Dry  wt. (g)" in df.columns:
+#     rename_dict["Dry  wt. (g)"] = "Sub Dry Wt (g)"
 
 # df.rename(columns=rename_dict, inplace=True)
 
 # === Clean and calculate ===
-if "HarvesterWeight_(kg)" in df.columns:
-    df = df[df["HarvesterWeight_(kg)"] >= 0]
+if "HarvesterWeight (kg)" in df.columns:
+    df = df[df["HarvesterWeight (kg)"] >= 0]
 
 if "Units" in df.columns:
     del df["Units"]
     
-# Generate unique ID in the format: Pasture.Paddock_Strip
-# df["unique_id"] = df["Pasture"].astype(str) + "." + df["Paddock"].astype(str) + "_" + df["Strip"].astype(str)
-df["unique_id"] = df["Pasture"].astype(str) + "." + df["Paddock"].astype(str) + "_" + df["Strip"].astype(str)
+# Safely convert float columns to int before string conversion
+df["Pasture"] = df["Pasture"].astype(pd.Int64Dtype())
+df["Paddock"] = df["Paddock"].astype(pd.Int64Dtype())
+df["Strip"] = df["Strip"].astype(pd.Int64Dtype())
 
+# Now create the clean unique_id
+df["unique_id"] = (
+    df["Pasture"].astype(str) + "." +
+    df["Paddock"].astype(str) + "_" +
+    df["Strip"].astype(str)
+)
+    
 
-df.insert(df.columns.get_loc("Length_(m)") + 1, "Width_(m)", 0.8128)
-df["Area_(m²)"] = df["Length_(m)"] * df["Width_(m)"]
-df.insert(df.columns.get_loc("Width_(m)") + 1, "Area_(m²)", df.pop("Area_(m²)"))
+df.insert(df.columns.get_loc("Length (m)") + 1, "Width (m)", 0.8128)
+df["Area (m²)"] = df["Length (m)"] * df["Width (m)"]
+df.insert(df.columns.get_loc("Width (m)") + 1, "Area (m²)", df.pop("Area (m²)"))
 
 # df ["Dry Wt (g)"] = df["DW + bag (g)"] - df["Dry bag wt. (g)"]
 # df["Wet Wt (g)"] = df["WW + bag (g)"] - df["Wet bag wt. (g)"]
 # 1. Compute Dry Matter as float, rounded
-df["Dry_Matter_%"] = (df["Dry_wt_(g)"] / df["Wet_wt_(g)"]).round(2)
+df["Dry Matter %"] = (df["Dry  wt. (g)"] / df["Wet wt. (g)"]).round(2)
 
 # 2. Compute Total Biomass as float, rounded
-df["Total_Biomass_(kg/ha)"] = (
-    (df["HarvesterWeight_(kg)"] * df["Dry_Matter_%"]) / df["Area_(m²)"] * 10000
+df["Biomass (kg/ha)"] = (
+    (df["HarvesterWeight (kg)"] * df["Dry Matter %"]) / df["Area (m²)"] * 10000
 ).round(2)
 
 # 3. Optional: format as string ONLY if needed before export
-# df["Dry_Matter_%"] = df["Dry_Matter_%"].map(lambda x: f"{x:.2f}")
-# df["Total_Biomass_(kg/ha)"] = df["Total_Biomass_(kg/ha)"].map(lambda x: f"{x:.2f}")
-# Convert to float if previously formatted as strings
-df["Total_Biomass_(kg/ha)"] = df["Total_Biomass_(kg/ha)"].astype(int)
-df["Residual_Dry_Wt_(kg/ha)"] = 980
-df["Total_Biomass_(kg/ha)"] = (df["Total_Biomass_(kg/ha)"] + df["Residual_Dry_Wt_(kg/ha)"])
+df["Dry Matter %"] = df["Dry Matter %"].map(lambda x: f"{x:.2f}")
+df["Biomass (kg/ha)"] = df["Biomass (kg/ha)"].map(lambda x: f"{x:.2f}")
+df["Residual (kg/ha)"] = 980
+df["Biomass (kg/ha)"] = pd.to_numeric(df["Biomass (kg/ha)"], errors='coerce')
+df["Residual (kg/ha)"] = pd.to_numeric(df["Residual (kg/ha)"], errors='coerce')
+df["Total Biomass (kg/ha)"] = df["Biomass (kg/ha)"] + df["Residual (kg/ha)"]
 df = df.dropna(axis=1, how='all')
 
 # # === Load Emlid_PT_Intergrated CSV ===
@@ -164,9 +172,11 @@ if "Unnamed: 0" in data.columns:
 preferred_columns = [
     'Experiment', 'Date', 'JulianDate', 'PrePost', 'Plot', 
     'Strip', 'Coordinates', 'Farm_Coordinates', 'PT_Height(mm)',
-    'NDVI_mean', 'EVI_mean','GNDVI_mean', 'SAVI_mean', 'MSAVI_mean',
-    'NDRE_mean', 'CLRE_mean', 'SRre_mean', 'unique_id',
-    'Dry_Matter_%', 'Total_Biomass_(kg/ha)'
+    'NDVI_mean', 'GNDVI_mean', 'EVI_mean', 'SAVI_mean', 'MSAVI_mean',
+    'NDRE_mean', 'CLRE_mean', 'SRre_mean', 'red_mean', 'green_mean', 'blue_mean', 'nir_mean', 'rededge_mean', 'observation_sum', 'prism_normals_sum', 
+    'departure_from_normal_sum', 'percent_of_normal_sum', 'Precipitation_inch', 'Min_Air_Temperature_F', 
+    'Max_Air_Temperature_F', 'Avg_Air_Temperature_F', 'Min_Temp_C', 'Max_Temp_C', 'Base_Temp_C', 'GDD''unique_id',
+    'Dry Matter %', 'Total Biomass (kg/ha)'
 ]
 
 # === Remove duplicate 'Date' columns
@@ -257,16 +267,10 @@ def send_email_gmail_api(subject, body_text, to_emails, attachment_path=None):
         print("❌ Failed to send email using Gmail API.")
         print(e)
 
-# # === Send email with attachment ===
+# === Send email with attachment ===
 receiver_emails = [
-    "darapanenivandana1199@gmail.com",
-# #     "vdzfb@missouri.edu", 
-# #     "bernardocandido@missouri.edu",
-# #     "emh3d9@missouri.edu",
-# #     "ummbv@missouri.edu",
-# #     "rashmi.p.sharma@missouri.edu",
-# #     "bpbf25@mizzou.edu",
-# #     "kbn8m@missouri.edu"
+    'darapanenivandana1199@gmail.com',
+    'vdzfb@missouri.edu',
 ]
 
 subject_success = f"✅ Yield Data - {yield_filename}"
