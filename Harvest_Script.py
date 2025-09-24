@@ -175,7 +175,7 @@ preferred_columns = [
     'NDVI_mean', 'GNDVI_mean', 'EVI_mean', 'SAVI_mean', 'MSAVI_mean',
     'NDRE_mean', 'CLRE_mean', 'SRre_mean', 'red_mean', 'green_mean', 'blue_mean', 'nir_mean', 'rededge_mean', 'observation_sum', 'prism_normals_sum', 
     'departure_from_normal_sum', 'percent_of_normal_sum', 'Precipitation_inch', 'Min_Air_Temperature_F', 
-    'Max_Air_Temperature_F', 'Avg_Air_Temperature_F', 'Min_Temp_C', 'Max_Temp_C', 'Base_Temp_C', 'GDD''unique_id',
+    'Max_Air_Temperature_F', 'Avg_Air_Temperature_F', 'Min_Temp_C', 'Max_Temp_C', 'Base_Temp_C', 'GDD', 'unique_id',
     'Dry Matter %', 'Total Biomass (kg/ha)'
 ]
 
