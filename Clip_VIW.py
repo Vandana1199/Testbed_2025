@@ -64,7 +64,6 @@ testbed_file = None
 pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
 pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
 testbed_filename = 'TestBed_StripCorners.csv'
-# testbed_filename = 'Testbed_Strip_Corners_5.5.25.csv'
 
 # Function to sort files by date in filename
 def extract_date_key(filename):
@@ -136,7 +135,8 @@ GPS = GPS_raw.rename(columns={"longitude(deg)": "X", "latitude(deg)": "Y"})
 GPS = GPS[['X', 'Y', 'GPST']]
 
 # === 12. Rescale PT time using time offset ===
-time_diff = timedelta(hours=5, minutes=0, seconds=18)
+# time_diff = timedelta(hours=5, minutes=0, seconds=18) ###-----> CDT
+time_diff = timedelta(hours=6, minutes=0, seconds=24) ###------->CST
 PT_scaled = PT_raw.sort_values('time').copy()
 PT_scaled['n'] = range(1, len(PT_scaled) + 1)
 PT_scaled['scaled_time'] = PT_scaled['datetime'] + time_diff
@@ -846,6 +846,7 @@ upload_model_file = drive.CreateFile({
 upload_model_file.SetContentFile(final_model_file)
 upload_model_file.Upload()
 print(f"✅ Final file uploaded to Google Drive folder: {final_model_file}")
+
 
 
 
