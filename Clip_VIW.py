@@ -46,7 +46,9 @@ gauth.SaveCredentialsFile("mycreds.txt")
 drive = GoogleDrive(gauth)
 
 # folder ID to connect with the folder inside the drive
-folder_id = "16HMtw8qijxLL8WhTHv9zRqezFRv1eRtu"
+# folder_id = "16HMtw8qijxLL8WhTHv9zRqezFRv1eRtu" ( TESTBED 2025_PT EMLUD DATA FOLDER ID)
+folder_id = "1G4s-qT5_VYZSu3PVU0vCYxo6_NWqA_0q" ###TESTBED_2026_PT EMLID DATA FOLDER ID
+
 
 # List all files in the folder
 file_list = drive.ListFile({
