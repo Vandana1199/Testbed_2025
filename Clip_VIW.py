@@ -248,7 +248,8 @@ print(f"✅ plot_intersect CSV file saved as {Intfile}")  # Update to print the 
 # Upload plot_intersect file to Google Drive
 upload_plot_intersect_file = drive.CreateFile({
     'title': Intfile,
-    'parents': [{'id': '1dcThJuXN3kK0Dr2aVBwZFRURicUOc5Sr'}]  # Specify the folder ID here
+    # 'parents': [{'id': '1dcThJuXN3kK0Dr2aVBwZFRURicUOc5Sr'}]  # TESTBED_2025 RAW PT data with Emlid GPS points Replaced folder
+    'parents': [{'id': '1iER32B8BprkMqNjECaEcKOCZ7B1b7dWc'}]  # TESTBED_2026 RAW PT data with Emlid GPS points Replaced folder
 })
 upload_plot_intersect_file.SetContentFile(plot_intersect_file)
 upload_plot_intersect_file.Upload()
@@ -293,7 +294,7 @@ os.rename(intermediate_file, final_file)
 print(f"📦 Renamed to: {final_file}")
 
 # === Upload to Google Drive ===
-upload_file = drive.CreateFile({'title': final_file, 'parents': [{'id': '1nfKmQMzP5Oio0eWxOXU1tHLzDMG6Vnni'}]})
+upload_file = drive.CreateFile({'title': final_file, 'parents': [{'id': '1bNyD7WR7Zbk-OKtNdpDjta-LuAGLkSk2'}]})
 upload_file.SetContentFile(final_file)
 upload_file.Upload()
 print(f"✅ Final file uploaded to Google Drive as: {final_file}")
@@ -843,7 +844,7 @@ print("✅ Final model updated with AGEBB temperature data.")
 # === Upload Final Model CSV to specific Google Drive folder ===
 upload_model_file = drive.CreateFile({
     'title': final_model_file,
-    'parents': [{'id': '1eAlkuHwjsV0VxgB3pjRRbU39PgucE1f5'}]
+    'parents': [{'id': '13Ljj7woD1lsPplBc7EVocKy-jDhXiV7-'}]
 })
 upload_model_file.SetContentFile(final_model_file)
 upload_model_file.Upload()
