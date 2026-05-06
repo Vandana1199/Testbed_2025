@@ -55,7 +55,7 @@ testbed_file = None
 
 pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
 pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
-testbed_filename = 'TestBed_StripCorners.csv'
+testbed_filename = 'stripcorners.csv'
 
 def extract_date_key(filename):
     match = re.search(r'(\d+)\.(\d+)\.(\d+)', filename)
