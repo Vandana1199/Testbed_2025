@@ -289,15 +289,15 @@ Emlid_PT_Intergrated = result.groupby(['Plot', 'Strip']).agg(
 # ) ##TESTBED FARMLEVEL POLYGON
 
 Emlid_PT_Intergrated["Farm_Coordinates"] = (
-    POLYGON ((
--92.2615122 38.8894407,
--92.2615494 38.888182,
--92.2587427 38.8880663,
--92.2587272 38.8893611,
--92.2600779 38.8894118,
--92.2615122 38.8894407
-))
-)
+    "POLYGON (("
+    "-92.2615122 38.8894407, "
+    "-92.2615494 38.888182, "
+    "-92.2587427 38.8880663, "
+    "-92.2587272 38.8893611, "
+    "-92.2600779 38.8894118, "
+    "-92.2615122 38.8894407"
+    "))"
+) ###CEREALRYE FARM COORDINATES
 
 Emlid_PT_Intergrated["unique_id"] = (
     Emlid_PT_Intergrated["Plot"].astype(str) +
