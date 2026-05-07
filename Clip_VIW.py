@@ -40,7 +40,7 @@ drive = GoogleDrive(gauth)
 # DRIVE FOLDER SETUP
 # ============================================================
 
-folder_id = "1G4s-qT5_VYZSu3PVU0vCYxo6_NWqA_0q"  # TESTBED_2026_PT EMLID DATA FOLDER ID
+folder_id = "1G4s-qT5_VYZSu3PVU0vCYxo6_NWqA_0q"
 
 file_list = drive.ListFile({
     'q': f"'{folder_id}' in parents and trashed=false"
@@ -209,7 +209,10 @@ merged_filtered_clean = merged_filtered.dropna(subset=["X", "Y"]).copy()
 
 PT_gdf = gpd.GeoDataFrame(
     merged_filtered_clean,
-    geometry=gpd.points_from_xy(merged_filtered_clean["X"], merged_filtered_clean["Y"]),
+    geometry=gpd.points_from_xy(
+        merged_filtered_clean["X"],
+        merged_filtered_clean["Y"]
+    ),
     crs="EPSG:4326"
 )
 
@@ -225,17 +228,48 @@ plot_intersect_full['Strip'] = plot_intersect_full['Strip'].astype(str)
 
 plot_intersect_full = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
 
-# dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
-# dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(6)
+# ============================================================
+# UPDATED:
+# KEEP ALL PT POINTS INSIDE PLOT/STRIP POLYGONS
+# DO NOT REMOVE FIRST 4 OR LAST 6 READINGS
+# ============================================================
 
-plot_intersect = (
-    plot_intersect_full.groupby(['Plot', 'Strip'])
-    .apply(lambda x: x.iloc[4:-6] if len(x) > 10 else x.iloc[0:0])
-    .reset_index(drop=True)
+plot_intersect = plot_intersect_full.copy()
+
+# ============================================================
+# DEBUG SUMMARY: CHECK RAWDISTANCE + HEIGHT BY PLOT/STRIP
+# ============================================================
+
+plot_intersect['grass_height_cm_debug'] = (
+    plot_intersect['tare'] - plot_intersect['rawdistance']
+) * 0.0859536
+
+debug_summary = (
+    plot_intersect.groupby(['Plot', 'Strip'])
+    .agg(
+        n_points=('rawdistance', 'count'),
+        rawdistance_min=('rawdistance', 'min'),
+        rawdistance_max=('rawdistance', 'max'),
+        rawdistance_mean=('rawdistance', 'mean'),
+        tare_min=('tare', 'min'),
+        tare_max=('tare', 'max'),
+        height_mean=('grass_height_cm_debug', 'mean'),
+        height_median=('grass_height_cm_debug', 'median')
+    )
+    .reset_index()
 )
 
-# dropped_start.to_csv("Dropped_First4_Readings.csv", index=False)
-# dropped_end.to_csv("Dropped_Last6_Readings.csv", index=False)
+print("\n========== PT HEIGHT DEBUG SUMMARY ==========\n")
+print(debug_summary)
+
+debug_file = "PT_Height_Debug_By_Plot_Strip.csv"
+debug_summary.to_csv(debug_file, index=False)
+
+print(f"\n✅ Debug file saved as: {debug_file}")
+
+# ============================================================
+# SAVE RAW PT DATA
+# ============================================================
 
 plot_intersect_file = "Raw_PT_Data.csv"
 plot_intersect.to_csv(plot_intersect_file, index=False)
@@ -324,6 +358,7 @@ upload_file.SetContentFile(final_file)
 upload_file.Upload()
 
 print(f"✅ EMLID + PT integrated file uploaded as: {final_file}")
+
 
 # ============================================================
 # SENTINEL HUB + NOAA WEATHER FUNCTION
