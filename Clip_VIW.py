@@ -129,7 +129,8 @@ PT_raw['time'] = pd.to_timedelta(PT_raw['datetime'].dt.strftime('%H:%M:%S'))
 GPS = GPS_raw.rename(columns={"longitude(deg)": "X", "latitude(deg)": "Y"})
 GPS = GPS[['X', 'Y', 'GPST']]
 
-time_diff = timedelta(hours=6, minutes=0, seconds=24)  # CST
+# time_diff = timedelta(hours=6, minutes=0, seconds=24)  # CST
+time_diff = timedelta(hours=5, minutes=0, seconds=24)  # CDT
 
 PT_scaled = PT_raw.sort_values('time').copy()
 PT_scaled['n'] = range(1, len(PT_scaled) + 1)
@@ -279,12 +280,23 @@ Emlid_PT_Intergrated = result.groupby(['Plot', 'Strip']).agg(
     Date=('Date', 'first')
 ).reset_index()
 
+# Emlid_PT_Intergrated["Farm_Coordinates"] = (
+#     "POLYGON ((-92.27126447977226 38.905762369582106, "
+#     "-92.27126447977226 38.90536179063761, "
+#     "-92.26988422615567 38.90536179063761, "
+#     "-92.26988422615567 38.905762369582106, "
+#     "-92.27126447977226 38.905762369582106))"
+# ) ##TESTBED FARMLEVEL POLYGON
+
 Emlid_PT_Intergrated["Farm_Coordinates"] = (
-    "POLYGON ((-92.27126447977226 38.905762369582106, "
-    "-92.27126447977226 38.90536179063761, "
-    "-92.26988422615567 38.90536179063761, "
-    "-92.26988422615567 38.905762369582106, "
-    "-92.27126447977226 38.905762369582106))"
+    POLYGON ((
+-92.2615122 38.8894407,
+-92.2615494 38.888182,
+-92.2587427 38.8880663,
+-92.2587272 38.8893611,
+-92.2600779 38.8894118,
+-92.2615122 38.8894407
+))
 )
 
 Emlid_PT_Intergrated["unique_id"] = (
@@ -343,7 +355,8 @@ def fetch_and_process_farm_data(clipped_df):
     config.sh_client_id = CLIENT_ID
     config.sh_client_secret = CLIENT_SECRET
 
-    collection_id = "0b8f4bdd-390d-4665-abd7-39ff23cfd44b"
+    # collection_id = "0b8f4bdd-390d-4665-abd7-39ff23cfd44b" TESTBED 2026 Collection bucket
+    collection_id = "bbe7e0d7-ed45-4482-8d3e-c96288cde87c"  ##CERELRYE Collectin bucket
     PlanetScope_data_collection = DataCollection.define_byoc(collection_id)
 
     df['Coordinates'] = df['Coordinates'].apply(wkt.loads)
