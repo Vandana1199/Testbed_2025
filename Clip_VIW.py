@@ -225,8 +225,8 @@ plot_intersect_full['Strip'] = plot_intersect_full['Strip'].astype(str)
 
 plot_intersect_full = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
 
-dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
-dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(6)
+# dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
+# dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(6)
 
 plot_intersect = (
     plot_intersect_full.groupby(['Plot', 'Strip'])
@@ -234,8 +234,8 @@ plot_intersect = (
     .reset_index(drop=True)
 )
 
-dropped_start.to_csv("Dropped_First4_Readings.csv", index=False)
-dropped_end.to_csv("Dropped_Last6_Readings.csv", index=False)
+# dropped_start.to_csv("Dropped_First4_Readings.csv", index=False)
+# dropped_end.to_csv("Dropped_Last6_Readings.csv", index=False)
 
 plot_intersect_file = "Raw_PT_Data.csv"
 plot_intersect.to_csv(plot_intersect_file, index=False)
