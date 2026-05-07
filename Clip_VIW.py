@@ -348,15 +348,15 @@ def fetch_and_process_farm_data(clipped_df):
 
     df = clipped_df.copy()
 
-    CLIENT_ID = '670e1809-9266-4a20-9857-d077e19962fb'
-    CLIENT_SECRET = 'O9rK3noJhbwQmgtvyVbSDT9OewGBFLTDyV'
+    CLIENT_ID = "99b12ca3-c774-4641-a7ea-a556862e29bb"
+    CLIENT_SECRET = "XaaldTmtq4XVinJtmUkIzPrlFGYf8ONA"
 
     config = SHConfig()
     config.sh_client_id = CLIENT_ID
     config.sh_client_secret = CLIENT_SECRET
 
     # collection_id = "0b8f4bdd-390d-4665-abd7-39ff23cfd44b" TESTBED 2026 Collection bucket
-    collection_id = "bbe7e0d7-ed45-4482-8d3e-c96288cde87c"  ##CERELRYE Collectin bucket
+    collection_id = "2c02b97b-e682-4b54-bf7b-1bbae3727e32"  ##CERELRYE Collectin bucket
     PlanetScope_data_collection = DataCollection.define_byoc(collection_id)
 
     df['Coordinates'] = df['Coordinates'].apply(wkt.loads)
