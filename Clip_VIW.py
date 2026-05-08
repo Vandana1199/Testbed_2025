@@ -1,3 +1,4 @@
+```python
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import pandas as pd
@@ -131,7 +132,6 @@ GPS = GPS[['X', 'Y', 'GPST']]
 
 # time_diff = timedelta(hours=6, minutes=0, seconds=24)  # CST
 time_diff = timedelta(hours=5, minutes=0, seconds=24)  # CDT
-# time_diff = timedelta(seconds=7.6)
 
 PT_scaled = PT_raw.sort_values('time').copy()
 PT_scaled['n'] = range(1, len(PT_scaled) + 1)
@@ -153,27 +153,20 @@ GPS['ID'] = GPS.groupby('scaled_time2').cumcount() + 1
 
 GPS_merge = GPS[['X', 'Y', 'scaled_time', 'ID']]
 
-# ============================================================
-# UPDATED MERGE:
-# DO NOT USE OUTER MERGE + FFILL
-# THIS PREVENTS SAME RAWDISTANCE FROM BEING COPIED TO MANY ROWS
-# ============================================================
-
 merged_data = pd.merge(
     PT_merge,
     GPS_merge,
-    how='inner',
+    how='outer',
     on=['scaled_time', 'ID']
 )
+
+merged_data = merged_data.ffill()
 
 merged_filtered = merged_data[
     ['rawdistance', 'X', 'Y', 'scaled_time', 'tare', 'date']
 ].rename(columns={'scaled_time': 'time'})
 
 merged_filtered = merged_filtered.dropna(subset=['rawdistance', 'X', 'Y', 'tare'])
-
-print("\nRawdistance unique count before clipping:", merged_filtered['rawdistance'].nunique())
-print(merged_filtered[['time', 'rawdistance', 'tare', 'X', 'Y']].head(20))
 
 # ============================================================
 # CREATE STRIP POLYGONS
@@ -236,53 +229,14 @@ plot_intersect_full['Strip'] = plot_intersect_full['Strip'].astype(str)
 
 plot_intersect_full = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
 
-# ============================================================
-# UPDATED:
-# KEEP ALL PT POINTS INSIDE PLOT/STRIP POLYGONS
-# DO NOT REMOVE FIRST 4 OR LAST 6 READINGS
-# ============================================================
+dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
+dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(6)
 
-plot_intersect = plot_intersect_full.copy()
-
-# ============================================================
-# ADD CALCULATED HEIGHT COLUMN TO RAW OUTPUT
-# ============================================================
-
-plot_intersect['PTdata_cm'] = plot_intersect['rawdistance']
-plot_intersect['grass_height_cm'] = (
-    plot_intersect['tare'] - plot_intersect['PTdata_cm']
-) * 0.0859536
-
-# ============================================================
-# DEBUG SUMMARY: CHECK RAWDISTANCE + HEIGHT BY PLOT/STRIP
-# ============================================================
-
-debug_summary = (
-    plot_intersect.groupby(['Plot', 'Strip'])
-    .agg(
-        n_points=('rawdistance', 'count'),
-        rawdistance_min=('rawdistance', 'min'),
-        rawdistance_max=('rawdistance', 'max'),
-        rawdistance_mean=('rawdistance', 'mean'),
-        tare_min=('tare', 'min'),
-        tare_max=('tare', 'max'),
-        height_mean=('grass_height_cm', 'mean'),
-        height_median=('grass_height_cm', 'median')
-    )
-    .reset_index()
+plot_intersect = (
+    plot_intersect_full.groupby(['Plot', 'Strip'])
+    .apply(lambda x: x.iloc[4:-6] if len(x) > 10 else x.iloc[0:0])
+    .reset_index(drop=True)
 )
-
-print("\n========== PT HEIGHT DEBUG SUMMARY ==========\n")
-print(debug_summary)
-
-debug_file = "PT_Height_Debug_By_Plot_Strip.csv"
-debug_summary.to_csv(debug_file, index=False)
-
-print(f"\n✅ Debug file saved as: {debug_file}")
-
-# ============================================================
-# SAVE RAW PT DATA
-# ============================================================
 
 plot_intersect_file = "Raw_PT_Data.csv"
 plot_intersect.to_csv(plot_intersect_file, index=False)
@@ -316,6 +270,9 @@ result = result.rename(
         "date": "Date"
     }
 )
+
+result['PTdata_cm'] = result['rawdistance']
+result['grass_height_cm'] = (result['tare'] - result['PTdata_cm']) * 0.0859536
 
 Emlid_PT_Intergrated = result.groupby(['Plot', 'Strip']).agg(
     mean_height=('grass_height_cm', 'mean'),
@@ -368,7 +325,6 @@ upload_file.SetContentFile(final_file)
 upload_file.Upload()
 
 print(f"✅ EMLID + PT integrated file uploaded as: {final_file}")
-
 
 # ============================================================
 # SENTINEL HUB + NOAA WEATHER FUNCTION
