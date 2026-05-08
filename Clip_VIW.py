@@ -152,20 +152,27 @@ GPS['ID'] = GPS.groupby('scaled_time2').cumcount() + 1
 
 GPS_merge = GPS[['X', 'Y', 'scaled_time', 'ID']]
 
+# ============================================================
+# UPDATED MERGE:
+# DO NOT USE OUTER MERGE + FFILL
+# THIS PREVENTS SAME RAWDISTANCE FROM BEING COPIED TO MANY ROWS
+# ============================================================
+
 merged_data = pd.merge(
     PT_merge,
     GPS_merge,
-    how='outer',
+    how='inner',
     on=['scaled_time', 'ID']
 )
-
-merged_data = merged_data.ffill()
 
 merged_filtered = merged_data[
     ['rawdistance', 'X', 'Y', 'scaled_time', 'tare', 'date']
 ].rename(columns={'scaled_time': 'time'})
 
 merged_filtered = merged_filtered.dropna(subset=['rawdistance', 'X', 'Y', 'tare'])
+
+print("\nRawdistance unique count before clipping:", merged_filtered['rawdistance'].nunique())
+print(merged_filtered[['time', 'rawdistance', 'tare', 'X', 'Y']].head(20))
 
 # ============================================================
 # CREATE STRIP POLYGONS
@@ -237,12 +244,17 @@ plot_intersect_full = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
 plot_intersect = plot_intersect_full.copy()
 
 # ============================================================
-# DEBUG SUMMARY: CHECK RAWDISTANCE + HEIGHT BY PLOT/STRIP
+# ADD CALCULATED HEIGHT COLUMN TO RAW OUTPUT
 # ============================================================
 
-plot_intersect['grass_height_cm_debug'] = (
-    plot_intersect['tare'] - plot_intersect['rawdistance']
+plot_intersect['PTdata_cm'] = plot_intersect['rawdistance']
+plot_intersect['grass_height_cm'] = (
+    plot_intersect['tare'] - plot_intersect['PTdata_cm']
 ) * 0.0859536
+
+# ============================================================
+# DEBUG SUMMARY: CHECK RAWDISTANCE + HEIGHT BY PLOT/STRIP
+# ============================================================
 
 debug_summary = (
     plot_intersect.groupby(['Plot', 'Strip'])
@@ -253,8 +265,8 @@ debug_summary = (
         rawdistance_mean=('rawdistance', 'mean'),
         tare_min=('tare', 'min'),
         tare_max=('tare', 'max'),
-        height_mean=('grass_height_cm_debug', 'mean'),
-        height_median=('grass_height_cm_debug', 'median')
+        height_mean=('grass_height_cm', 'mean'),
+        height_median=('grass_height_cm', 'median')
     )
     .reset_index()
 )
@@ -303,9 +315,6 @@ result = result.rename(
         "date": "Date"
     }
 )
-
-result['PTdata_cm'] = result['rawdistance']
-result['grass_height_cm'] = (result['tare'] - result['PTdata_cm']) * 0.0859536
 
 Emlid_PT_Intergrated = result.groupby(['Plot', 'Strip']).agg(
     mean_height=('grass_height_cm', 'mean'),
