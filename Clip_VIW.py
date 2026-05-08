@@ -205,7 +205,9 @@ polygon_gdf = gpd.GeoDataFrame(
 # SPATIAL JOIN PT POINTS WITH STRIPS
 # ============================================================
 
-merged_filtered_clean = merged_filtered.dropna(subset=["X", "Y"]).copy()
+# merged_filtered_clean = merged_filtered.dropna(subset=["X", "Y"]).copy()
+merged_filtered_clean = merged_filtered.copy()
+
 
 PT_gdf = gpd.GeoDataFrame(
     merged_filtered_clean,
@@ -228,8 +230,8 @@ plot_intersect_full['Strip'] = plot_intersect_full['Strip'].astype(str)
 
 plot_intersect_full = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
 
-dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
-dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(6)
+# dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
+# dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(6)
 
 plot_intersect = (
     plot_intersect_full.groupby(['Plot', 'Strip'])
