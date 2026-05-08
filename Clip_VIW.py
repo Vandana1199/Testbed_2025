@@ -130,8 +130,8 @@ GPS = GPS_raw.rename(columns={"longitude(deg)": "X", "latitude(deg)": "Y"})
 GPS = GPS[['X', 'Y', 'GPST']]
 
 # time_diff = timedelta(hours=6, minutes=0, seconds=24)  # CST
-# time_diff = timedelta(hours=5, minutes=0, seconds=24)  # CDT
-time_diff = timedelta(seconds=7.6)
+time_diff = timedelta(hours=5, minutes=0, seconds=24)  # CDT
+# time_diff = timedelta(seconds=7.6)
 
 PT_scaled = PT_raw.sort_values('time').copy()
 PT_scaled['n'] = range(1, len(PT_scaled) + 1)
