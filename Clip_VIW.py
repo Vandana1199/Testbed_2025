@@ -358,7 +358,7 @@ def fetch_and_process_farm_data(clipped_df):
     config.sh_client_id = CLIENT_ID
     config.sh_client_secret = CLIENT_SECRET
 
-     collection_id = "0b8f4bdd-390d-4665-abd7-39ff23cfd44b" ##TESTBED 2026 Collection bucket
+    collection_id = "0b8f4bdd-390d-4665-abd7-39ff23cfd44b" ##TESTBED 2026 Collection bucket
    # collection_id = "2c02b97b-e682-4b54-bf7b-1bbae3727e32"  ##CERELRYE Collectin bucket
     PlanetScope_data_collection = DataCollection.define_byoc(collection_id)
 
