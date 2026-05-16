@@ -351,8 +351,11 @@ def fetch_and_process_farm_data(clipped_df):
 
     df = clipped_df.copy()
 
-    CLIENT_ID = "99b12ca3-c774-4641-a7ea-a556862e29bb"
-    CLIENT_SECRET = "XaaldTmtq4XVinJtmUkIzPrlFGYf8ONA"
+    # CLIENT_ID = "99b12ca3-c774-4641-a7ea-a556862e29bb" #### AJAY"S CLIENT ID
+    # CLIENT_SECRET = "XaaldTmtq4XVinJtmUkIzPrlFGYf8ONA"
+
+    CLIENT_ID = "670e1809-9266-4a20-9857-d077e19962fb"
+    CLIENT_SECRET = "oK3noJhbwQmgtvyVbSDT9OewGBFLTDyV"
 
     config = SHConfig()
     config.sh_client_id = CLIENT_ID
