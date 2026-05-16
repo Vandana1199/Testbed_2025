@@ -55,7 +55,7 @@ testbed_file = None
 
 pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
 pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
-testbed_filename = 'stripcorners.csv'
+testbed_filename = 'TestBed_StripCorners.csv'
 
 def extract_date_key(filename):
     match = re.search(r'(\d+)\.(\d+)\.(\d+)', filename)
@@ -129,8 +129,9 @@ PT_raw['time'] = pd.to_timedelta(PT_raw['datetime'].dt.strftime('%H:%M:%S'))
 GPS = GPS_raw.rename(columns={"longitude(deg)": "X", "latitude(deg)": "Y"})
 GPS = GPS[['X', 'Y', 'GPST']]
 
-# time_diff = timedelta(hours=6, minutes=0, seconds=24)  # CST
-time_diff = timedelta(hours=9, minutes=59, seconds=50)  # CDT
+# time_diff = timedelta(hours=6, minutes=0, seconds=24)  # CST Use this when the daylight saving ends.
+#time_diff = timedelta(hours=9, minutes=59, seconds=50)  # CDT #Floting time issue in ELMID
+time_diff = timedelta(hours=5, minutes=0, seconds=10)  #Central Daylight Time zone
 
 PT_scaled = PT_raw.sort_values('time').copy()
 PT_scaled['n'] = range(1, len(PT_scaled) + 1)
