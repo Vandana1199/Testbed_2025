@@ -129,9 +129,7 @@ PT_raw['time'] = pd.to_timedelta(PT_raw['datetime'].dt.strftime('%H:%M:%S'))
 GPS = GPS_raw.rename(columns={"longitude(deg)": "X", "latitude(deg)": "Y"})
 GPS = GPS[['X', 'Y', 'GPST']]
 
-# time_diff = timedelta(hours=6, minutes=0, seconds=24)  # CST Use this when the daylight saving ends.
-#time_diff = timedelta(hours=9, minutes=59, seconds=50)  # CDT #Floting time issue in ELMID
-time_diff = timedelta(hours=5, minutes=0, seconds=10)  #Central Daylight Time zone
+time_diff = timedelta(hours=5, minutes=0, seconds=10)
 
 PT_scaled = PT_raw.sort_values('time').copy()
 PT_scaled['n'] = range(1, len(PT_scaled) + 1)
@@ -206,9 +204,7 @@ polygon_gdf = gpd.GeoDataFrame(
 # SPATIAL JOIN PT POINTS WITH STRIPS
 # ============================================================
 
-# merged_filtered_clean = merged_filtered.dropna(subset=["X", "Y"]).copy()
 merged_filtered_clean = merged_filtered.copy()
-
 
 PT_gdf = gpd.GeoDataFrame(
     merged_filtered_clean,
@@ -230,9 +226,6 @@ plot_intersect_full['Plot'] = plot_intersect_full['Plot'].astype(str)
 plot_intersect_full['Strip'] = plot_intersect_full['Strip'].astype(str)
 
 plot_intersect_full = plot_intersect_full.sort_values(['Plot', 'Strip', 'time'])
-
-# dropped_start = plot_intersect_full.groupby(['Plot', 'Strip']).head(4)
-# dropped_end = plot_intersect_full.groupby(['Plot', 'Strip']).tail(6)
 
 plot_intersect = (
     plot_intersect_full.groupby(['Plot', 'Strip'])
@@ -256,7 +249,7 @@ upload_plot_intersect_file.Upload()
 print(f"✅ Raw PT file uploaded as: {raw_pt_file}")
 
 # ============================================================
-# HEIGHT CALCULATION: MEAN + MEDIAN
+# HEIGHT CALCULATION: MEAN + MEDIAN + STD + SE
 # ============================================================
 
 result = plot_intersect.merge(
@@ -279,17 +272,16 @@ result['grass_height_cm'] = (result['tare'] - result['PTdata_cm']) * 0.0859536
 Emlid_PT_Intergrated = result.groupby(['Plot', 'Strip']).agg(
     mean_height=('grass_height_cm', 'mean'),
     median_height=('grass_height_cm', 'median'),
+    std_height=('grass_height_cm', 'std'),
+    sample_count=('grass_height_cm', 'count'),
     Coordinates=('Coordinates', 'first'),
     Date=('Date', 'first')
 ).reset_index()
 
-# Emlid_PT_Intergrated["Farm_Coordinates"] = (
-#     "POLYGON ((-92.27126447977226 38.905762369582106, "
-#     "-92.27126447977226 38.90536179063761, "
-#     "-92.26988422615567 38.90536179063761, "
-#     "-92.26988422615567 38.905762369582106, "
-#     "-92.27126447977226 38.905762369582106))"
-# ) ##TESTBED FARMLEVEL POLYGON
+Emlid_PT_Intergrated['standard_error_height'] = (
+    Emlid_PT_Intergrated['std_height'] /
+    np.sqrt(Emlid_PT_Intergrated['sample_count'])
+)
 
 Emlid_PT_Intergrated["Farm_Coordinates"] = (
     "POLYGON (("
@@ -300,7 +292,7 @@ Emlid_PT_Intergrated["Farm_Coordinates"] = (
     "-92.2600779 38.8894118, "
     "-92.2615122 38.8894407"
     "))"
-) ###CEREALRYE FARM COORDINATES
+)
 
 Emlid_PT_Intergrated["unique_id"] = (
     Emlid_PT_Intergrated["Plot"].astype(str) +
@@ -351,9 +343,6 @@ def fetch_and_process_farm_data(clipped_df):
 
     df = clipped_df.copy()
 
-    # CLIENT_ID = "99b12ca3-c774-4641-a7ea-a556862e29bb" #### AJAY"S CLIENT ID
-    # CLIENT_SECRET = "XaaldTmtq4XVinJtmUkIzPrlFGYf8ONA"
-
     CLIENT_ID = "670e1809-9266-4a20-9857-d077e19962fb"
     CLIENT_SECRET = "oK3noJhbwQmgtvyVbSDT9OewGBFLTDyV"
 
@@ -361,8 +350,7 @@ def fetch_and_process_farm_data(clipped_df):
     config.sh_client_id = CLIENT_ID
     config.sh_client_secret = CLIENT_SECRET
 
-    collection_id = "0b8f4bdd-390d-4665-abd7-39ff23cfd44b" ##TESTBED 2026 Collection bucket
-   # collection_id = "2c02b97b-e682-4b54-bf7b-1bbae3727e32"  ##CERELRYE Collectin bucket
+    collection_id = "0b8f4bdd-390d-4665-abd7-39ff23cfd44b"
     PlanetScope_data_collection = DataCollection.define_byoc(collection_id)
 
     df['Coordinates'] = df['Coordinates'].apply(wkt.loads)
@@ -617,7 +605,7 @@ def fetch_and_process_farm_data(clipped_df):
 
     model_df = final_df[[
         'Plot', 'Strip',
-        'mean_height', 'median_height',
+        'mean_height', 'median_height', 'std_height', 'standard_error_height',
         'Coordinates', 'Date', 'Farm_Coordinates', 'unique_id',
         'interval_from', 'interval_to',
         'savi_B0_mean', 'ndvi_B0_mean', 'msavi_B0_mean', 'evi_B0_mean',
@@ -627,7 +615,7 @@ def fetch_and_process_farm_data(clipped_df):
     ]]
 
     model_df = model_df.dropna(subset=[
-        'mean_height', 'median_height',
+        'mean_height', 'median_height', 'std_height', 'standard_error_height',
         'savi_B0_mean', 'ndvi_B0_mean', 'msavi_B0_mean', 'gndvi_B0_mean',
         'ndre_B0_mean', 'Clre_B0_mean', 'SRre_B0_mean', 'evi_B0_mean',
         'red_B0_mean', 'green_B0_mean', 'blue_B0_mean', 'nir_B0_mean', 'rededge_B0_mean',
@@ -637,6 +625,8 @@ def fetch_and_process_farm_data(clipped_df):
     model_df = model_df.rename(columns={
         'mean_height': 'PT_Mean_Height(cm)',
         'median_height': 'PT_Median_Height(cm)',
+        'std_height': 'PT_Height_STD(cm)',
+        'standard_error_height': 'PT_Height_SE(cm)',
         'ndvi_B0_mean': 'NDVI_mean',
         'gndvi_B0_mean': 'GNDVI_mean',
         'evi_B0_mean': 'EVI_mean',
@@ -830,15 +820,19 @@ vi_cols = [
 for col in vi_cols:
     df[col] = pd.to_numeric(df[col], errors='coerce').round(3)
 
-df['PT_Mean_Height(mm)'] = df['PT_Mean_Height(cm)'].round(2)
-df['PT_Median_Height(mm)'] = df['PT_Median_Height(cm)'].round(2)
+df['PT_Mean_Height(cm)'] = pd.to_numeric(df['PT_Mean_Height(cm)'], errors='coerce').round(2)
+df['PT_Median_Height(cm)'] = pd.to_numeric(df['PT_Median_Height(cm)'], errors='coerce').round(2)
+df['PT_Height_STD(cm)'] = pd.to_numeric(df['PT_Height_STD(cm)'], errors='coerce').round(2)
+df['PT_Height_SE(cm)'] = pd.to_numeric(df['PT_Height_SE(cm)'], errors='coerce').round(2)
 
 df['unique_id'] = df['unique_id'].astype(str).str.replace(r'\.0', '', regex=True)
 
 ordered_cols = [
     'Date', 'JulianDate',
     'Plot', 'Strip', 'Coordinates', 'Farm_Coordinates',
-    'PT_Mean_Height(mm)', 'PT_Median_Height(mm)', 'unique_id',
+    'PT_Mean_Height(cm)', 'PT_Median_Height(cm)',
+    'PT_Height_STD(cm)', 'PT_Height_SE(cm)',
+    'unique_id',
     'interval_from', 'interval_to',
 
     'NDVI_mean', 'GNDVI_mean', 'EVI_mean', 'SAVI_mean', 'MSAVI_mean',
@@ -863,7 +857,7 @@ df = df[existing_ordered_cols]
 
 df.to_csv(final_model_file, index=False)
 
-print("✅ Final model updated with mean height, median height, and AGEBB rolling weather features.")
+print("✅ Final model updated with mean height, median height, standard deviation, standard error, and AGEBB rolling weather features.")
 print(f"✅ Final saved file: {final_model_file}")
 
 # ============================================================
