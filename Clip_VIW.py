@@ -249,7 +249,7 @@ upload_plot_intersect_file.Upload()
 print(f"✅ Raw PT file uploaded as: {raw_pt_file}")
 
 # ============================================================
-# HEIGHT CALCULATION: MEAN + MEDIAN + STD + SE
+# HEIGHT CALCULATION: MEAN + MEDIAN + STD + SE IN MM
 # ============================================================
 
 result = plot_intersect.merge(
@@ -266,14 +266,14 @@ result = result.rename(
     }
 )
 
-result['PTdata_cm'] = result['rawdistance']
-result['grass_height_cm'] = (result['tare'] - result['PTdata_cm']) * 0.0859536
+result['PTdata_rawdistance'] = result['rawdistance']
+result['grass_height_mm'] = (result['tare'] - result['PTdata_rawdistance']) * 0.0859536
 
 Emlid_PT_Intergrated = result.groupby(['Plot', 'Strip']).agg(
-    mean_height=('grass_height_cm', 'mean'),
-    median_height=('grass_height_cm', 'median'),
-    std_height=('grass_height_cm', 'std'),
-    sample_count=('grass_height_cm', 'count'),
+    mean_height=('grass_height_mm', 'mean'),
+    median_height=('grass_height_mm', 'median'),
+    std_height=('grass_height_mm', 'std'),
+    sample_count=('grass_height_mm', 'count'),
     Coordinates=('Coordinates', 'first'),
     Date=('Date', 'first')
 ).reset_index()
@@ -605,7 +605,7 @@ def fetch_and_process_farm_data(clipped_df):
 
     model_df = final_df[[
         'Plot', 'Strip',
-        'mean_height', 'median_height', 'std_height', 'standard_error_height',
+        'mean_height', 'median_height', 'std_height', 'standard_error_height', 'sample_count',
         'Coordinates', 'Date', 'Farm_Coordinates', 'unique_id',
         'interval_from', 'interval_to',
         'savi_B0_mean', 'ndvi_B0_mean', 'msavi_B0_mean', 'evi_B0_mean',
@@ -623,10 +623,11 @@ def fetch_and_process_farm_data(clipped_df):
     ]).reset_index(drop=True)
 
     model_df = model_df.rename(columns={
-        'mean_height': 'PT_Mean_Height(cm)',
-        'median_height': 'PT_Median_Height(cm)',
-        'std_height': 'PT_Height_STD(cm)',
-        'standard_error_height': 'PT_Height_SE(cm)',
+        'mean_height': 'PT_Mean_Height(mm)',
+        'median_height': 'PT_Median_Height(mm)',
+        'std_height': 'PT_Height_STD(mm)',
+        'standard_error_height': 'PT_Height_SE(mm)',
+        'sample_count': 'PT_Height_Sample_Count',
         'ndvi_B0_mean': 'NDVI_mean',
         'gndvi_B0_mean': 'GNDVI_mean',
         'evi_B0_mean': 'EVI_mean',
@@ -766,13 +767,10 @@ def add_agebb_rolling_weather(df, station_prefix='sfm'):
 
     weather_keep_cols = [
         'Date',
-
         'precip_7d_sum_in', 'gdd_7d_sum',
         'tavg_7d_avg_F', 'tmin_7d_avg_F', 'tmax_7d_avg_F',
-
         'precip_14d_sum_in', 'gdd_14d_sum',
         'tavg_14d_avg_F', 'tmin_14d_avg_F', 'tmax_14d_avg_F',
-
         'precip_21d_sum_in', 'gdd_21d_sum',
         'tavg_21d_avg_F', 'tmin_21d_avg_F', 'tmax_21d_avg_F'
     ]
@@ -820,18 +818,23 @@ vi_cols = [
 for col in vi_cols:
     df[col] = pd.to_numeric(df[col], errors='coerce').round(3)
 
-df['PT_Mean_Height(cm)'] = pd.to_numeric(df['PT_Mean_Height(cm)'], errors='coerce').round(2)
-df['PT_Median_Height(cm)'] = pd.to_numeric(df['PT_Median_Height(cm)'], errors='coerce').round(2)
-df['PT_Height_STD(cm)'] = pd.to_numeric(df['PT_Height_STD(cm)'], errors='coerce').round(2)
-df['PT_Height_SE(cm)'] = pd.to_numeric(df['PT_Height_SE(cm)'], errors='coerce').round(2)
+height_cols = [
+    'PT_Mean_Height(mm)',
+    'PT_Median_Height(mm)',
+    'PT_Height_STD(mm)',
+    'PT_Height_SE(mm)'
+]
+
+for col in height_cols:
+    df[col] = pd.to_numeric(df[col], errors='coerce').round(2)
 
 df['unique_id'] = df['unique_id'].astype(str).str.replace(r'\.0', '', regex=True)
 
 ordered_cols = [
     'Date', 'JulianDate',
     'Plot', 'Strip', 'Coordinates', 'Farm_Coordinates',
-    'PT_Mean_Height(cm)', 'PT_Median_Height(cm)',
-    'PT_Height_STD(cm)', 'PT_Height_SE(cm)',
+    'PT_Mean_Height(mm)', 'PT_Median_Height(mm)',
+    'PT_Height_STD(mm)', 'PT_Height_SE(mm)', 'PT_Height_Sample_Count',
     'unique_id',
     'interval_from', 'interval_to',
 
