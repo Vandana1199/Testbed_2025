@@ -23,7 +23,7 @@ GMAIL_CREDENTIALS_FILE = "credentials_gmail.json"
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
 folder_1_id = '1cC6k8mqJa9TyAFKXO2t8BTSHOmZM81XC'  # Harvest
-folder_2_id = '13Ljj7woD1lsPplBc7EVocKy-jDhXiV7'  # Emlid_PT_Intergrated
+folder_2_id = '13Ljj7woD1lsPplBc7EVocKy-jDhXiV7-'  # Emlid_PT_Intergrated
 folder_3_id = '1G4lXcgNpGwTEHsJPpLxcS9pYfmWOsj78'  # Final output (Yield)
 
 receiver_emails = [
