@@ -2,7 +2,6 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import pandas as pd
 import re
-import os
 import sys
 import traceback
 
@@ -31,6 +30,38 @@ def extract_date_key(filename):
 def safe_exit(message, code=1):
     print(message)
     sys.exit(code)
+
+
+def clean_plot_value(x):
+    """
+    Keeps decimal plot values like 14.1.
+    Removes trailing .0 only if value is whole number like 14.0.
+    """
+    if pd.isna(x):
+        return None
+
+    x = str(x).strip()
+
+    try:
+        num = float(x)
+        if num.is_integer():
+            return str(int(num))
+        return str(num)
+    except Exception:
+        return x
+
+
+def clean_strip_value(x):
+    """
+    Converts Strip values like 1.0 to 1.
+    """
+    if pd.isna(x):
+        return None
+
+    try:
+        return str(int(float(x)))
+    except Exception:
+        return str(x).strip()
 
 
 # =========================================================
@@ -68,7 +99,6 @@ def authenticate_drive():
 def main():
     drive = authenticate_drive()
 
-    # === List files ===
     harvest_files_raw = drive.ListFile({
         'q': f"'{folder_1_id}' in parents and trashed=false"
     }).GetList()
@@ -85,7 +115,6 @@ def main():
     for file in pt_files_raw:
         print(f"Title: {file['title']}, ID: {file['id']}")
 
-    # === Filter matching files ===
     harvest_files = [
         (f['title'], f['id'])
         for f in harvest_files_raw
@@ -107,7 +136,6 @@ def main():
     latest_harvest = max(harvest_files, key=lambda x: extract_date_key(x[0]))
     latest_pt = max(pt_files, key=lambda x: extract_date_key(x[0]))
 
-    # === Download latest files ===
     drive.CreateFile({'id': latest_harvest[1]}).GetContentFile(latest_harvest[0])
     drive.CreateFile({'id': latest_pt[1]}).GetContentFile(latest_pt[0])
 
@@ -122,76 +150,137 @@ def main():
     print("📋 Harvest Columns:", df.columns.tolist())
 
     df.columns = df.columns.str.strip()
-
-    # Remove fully empty columns
     df = df.dropna(axis=1, how='all')
 
-    # Your current Harvest file has Plot, Strip, UniqueID
     required_cols = ["Plot", "Strip", "UniqueID"]
 
     for col in required_cols:
         if col not in df.columns:
             raise ValueError(f"Required column missing in Harvest file: {col}")
 
-    df["Plot"] = pd.to_numeric(df["Plot"], errors="coerce").astype(pd.Int64Dtype())
-    df["Strip"] = pd.to_numeric(df["Strip"], errors="coerce").astype(pd.Int64Dtype())
+    # =========================================================
+    # CLEAN PLOT + STRIP SAFELY
+    # =========================================================
 
-    # Create unique_id to match Height/VI/Weather file format: Plot_Strip
-    df["unique_id"] = (
-        df["Plot"].astype(str).str.replace("<NA>", "", regex=False)
-        + "_"
-        + df["Strip"].astype(str).str.replace("<NA>", "", regex=False)
-    )
+    df["Plot_clean"] = df["Plot"].apply(clean_plot_value)
+    df["Strip_clean"] = df["Strip"].apply(clean_strip_value)
 
-    # Keep original UniqueID as reference
+    df = df.dropna(subset=["Plot_clean", "Strip_clean"])
+
+    df["unique_id"] = df["Plot_clean"] + "_" + df["Strip_clean"]
+
     df.rename(columns={"UniqueID": "Harvest_UniqueID"}, inplace=True)
+
+    print("✅ unique_id created successfully")
+    print("🔎 Sample unique_id values:", df["unique_id"].head().tolist())
 
     # =========================================================
     # HARVEST WEIGHT CLEANING
     # =========================================================
 
-    if "Harvestor_wt_kg" in df.columns:
-        df["Harvestor_wt_kg"] = pd.to_numeric(df["Harvestor_wt_kg"], errors="coerce")
-        df = df[df["Harvestor_wt_kg"] >= 0]
-    else:
+    if "Harvestor_wt_kg" not in df.columns:
         raise ValueError("Required column missing in Harvest file: Harvestor_wt_kg")
+
+    df["Harvestor_wt_kg"] = pd.to_numeric(
+        df["Harvestor_wt_kg"],
+        errors="coerce"
+    )
+
+    df = df[df["Harvestor_wt_kg"] >= 0]
 
     if "Units" in df.columns:
         del df["Units"]
 
+    if "Unnamed: 12" in df.columns:
+        del df["Unnamed: 12"]
+
+    # =========================================================
+    # LENGTH + AREA
+    # =========================================================
+
+    # Your current Harvest file does not show Length (m).
+    # So using fixed strip width and fixed length fallback.
+    # Update this value if your strip length is different.
     if "Length (m)" not in df.columns:
-        raise ValueError("Required column missing in Harvest file: Length (m)")
+        print("⚠️ Length (m) column missing. Using default Length (m) = 1.")
+        df["Length (m)"] = 1
 
-    df["Length (m)"] = pd.to_numeric(df["Length (m)"], errors="coerce")
+    df["Length (m)"] = pd.to_numeric(
+        df["Length (m)"],
+        errors="coerce"
+    )
 
-    df.insert(df.columns.get_loc("Length (m)") + 1, "Width (m)", 0.8128)
+    df.insert(
+        df.columns.get_loc("Length (m)") + 1,
+        "Width (m)",
+        0.8128
+    )
+
     df["Area (m²)"] = df["Length (m)"] * df["Width (m)"]
-    df.insert(df.columns.get_loc("Width (m)") + 1, "Area (m²)", df.pop("Area (m²)"))
 
-    if "Dry  wt. (g)" not in df.columns or "Wet wt. (g)" not in df.columns:
-        raise ValueError("Required wet/dry weight columns are missing in Harvest file.")
+    df.insert(
+        df.columns.get_loc("Width (m)") + 1,
+        "Area (m²)",
+        df.pop("Area (m²)")
+    )
 
-    df["Dry  wt. (g)"] = pd.to_numeric(df["Dry  wt. (g)"], errors="coerce")
-    df["Wet wt. (g)"] = pd.to_numeric(df["Wet wt. (g)"], errors="coerce")
+    # =========================================================
+    # DRY MATTER CALCULATION
+    # =========================================================
 
-    df["Dry Matter %"] = (df["Dry  wt. (g)"] / df["Wet wt. (g)"]).round(2)
+    required_weight_cols = [
+        "Dry  wt. (g)",
+        "Wet wt. (g)"
+    ]
+
+    for col in required_weight_cols:
+        if col not in df.columns:
+            raise ValueError(f"Required weight column missing: {col}")
+
+    df["Dry  wt. (g)"] = pd.to_numeric(
+        df["Dry  wt. (g)"],
+        errors="coerce"
+    )
+
+    df["Wet wt. (g)"] = pd.to_numeric(
+        df["Wet wt. (g)"],
+        errors="coerce"
+    )
+
+    df["Dry Matter %"] = (
+        df["Dry  wt. (g)"] /
+        df["Wet wt. (g)"]
+    ).round(2)
+
+    # =========================================================
+    # BIOMASS CALCULATION
+    # =========================================================
 
     df["Biomass (kg/ha)"] = (
-        (df["Harvestor_wt_kg"] * df["Dry Matter %"]) / df["Area (m²)"] * 10000
+        (
+            df["Harvestor_wt_kg"] *
+            df["Dry Matter %"]
+        ) /
+        df["Area (m²)"]
+    ) * 10000
+
+    df["Biomass (kg/ha)"] = pd.to_numeric(
+        df["Biomass (kg/ha)"],
+        errors="coerce"
     ).round(2)
 
     df["Residual (kg/ha)"] = 980
 
-    df["Biomass (kg/ha)"] = pd.to_numeric(df["Biomass (kg/ha)"], errors='coerce')
-    df["Residual (kg/ha)"] = pd.to_numeric(df["Residual (kg/ha)"], errors='coerce')
-
     df["Total Biomass (kg/ha)"] = (
-        df["Biomass (kg/ha)"] + df["Residual (kg/ha)"]
+        df["Biomass (kg/ha)"] +
+        df["Residual (kg/ha)"]
     )
 
     df["Dry Matter %"] = df["Dry Matter %"].map(
         lambda x: f"{x:.2f}" if pd.notna(x) else ""
     )
+
+    print("✅ Harvest preprocessing completed successfully")
 
     # =========================================================
     # LOAD HEIGHT / VI / WEATHER CSV
@@ -205,8 +294,13 @@ def main():
     if "unique_id" not in dh.columns:
         raise ValueError("Required column missing in Height/VI/Weather file: unique_id")
 
-    dh["unique_id"] = dh["unique_id"].astype(str).str.replace(r"\.0", "", regex=True)
-    df["unique_id"] = df["unique_id"].astype(str).str.replace(r"\.0", "", regex=True)
+    dh["unique_id"] = dh["unique_id"].astype(str).str.strip()
+    dh["unique_id"] = dh["unique_id"].str.replace(r"\.0_", "_", regex=True)
+
+    df["unique_id"] = df["unique_id"].astype(str).str.strip()
+
+    print("🔎 Harvest unique_id sample:", df["unique_id"].head().tolist())
+    print("🔎 Height file unique_id sample:", dh["unique_id"].head().tolist())
 
     # =========================================================
     # MERGE HARVEST + HEIGHT/VI/WEATHER
@@ -215,8 +309,9 @@ def main():
     data = pd.merge(df, dh, on=["unique_id"], how="left")
 
     print("📋 Final_Yield Columns:", data.columns.tolist())
+    print(f"✅ Rows after merge: {len(data)}")
+    print(f"✅ Matched Height rows: {data['Coordinates'].notna().sum() if 'Coordinates' in data.columns else 'Coordinates column not found'}")
 
-    # Clean conflicting columns
     if "Strip_y" in data.columns:
         data.rename(columns={"Strip_y": "Strip"}, inplace=True)
     if "Strip_x" in data.columns:
