@@ -12,7 +12,7 @@ import traceback
 DRIVE_CREDENTIALS_FILE = "mycreds_new.txt"
 
 folder_1_id = '1cC6k8mqJa9TyAFKXO2t8BTSHOmZM81XC'  # Harvest
-folder_2_id = '13Ljj7woD1lsPplBc7EVocKy-jDhXiV7-'  # Emlid_PT_Intergrated
+folder_2_id = '13Ljj7woD1lsPplBc7EVocKy-jDhXiV7-'  # Emlid_PT_Intergrated from VI+weather folder
 folder_3_id = '1G4lXcgNpGwTEHsJPpLxcS9pYfmWOsj78'  # Final output Yield
 
 # =========================================================
