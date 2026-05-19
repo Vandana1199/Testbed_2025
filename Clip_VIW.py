@@ -40,7 +40,7 @@ drive = GoogleDrive(gauth)
 # DRIVE FOLDER SETUP
 # ============================================================
 
-folder_id = "1G4s-qT5_VYZSu3PVU0vCYxo6_NWqA_0q"
+folder_id = "1pjxF4xtYJP_QsIG5xDHxCoO40HaEtvv-"
 
 file_list = drive.ListFile({
     'q': f"'{folder_id}' in parents and trashed=false"
