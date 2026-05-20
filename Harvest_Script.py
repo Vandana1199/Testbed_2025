@@ -124,7 +124,7 @@ def main():
     pt_files = [
         (f['title'], f['id'])
         for f in pt_files_raw
-        if re.match(r"^Height_VI's_Weather_(\d+\.\d+\.\d+)\.csv$", f['title'])
+        if re.match(r"^Height_VIs_Weather_(\d+\.\d+\.\d+)\.csv$", f['title'])
     ]
 
     if not harvest_files:
