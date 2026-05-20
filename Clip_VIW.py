@@ -53,7 +53,7 @@ emlid_files = []
 pt_files = []
 testbed_file = None
 
-pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
+pattern_eml = re.compile(r'^EML_(\d+\.\d+\.\d+)\.csv$')
 pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
 testbed_filename = 'TestBed_StripCorners.csv'
 
@@ -67,8 +67,8 @@ def extract_date_key(filename):
 for file in file_list:
     title = file['title']
     if title == testbed_filename:
-        testbed_file = (title, file['id'])
-    elif pattern_emlid.match(title):
+        testbed_file = (title, file[''])
+    elif pattern_eml.match(title):
         emlid_files.append((title, file['id']))
     elif pattern_pt.match(title):
         pt_files.append((title, file['id']))
@@ -129,7 +129,7 @@ PT_raw['time'] = pd.to_timedelta(PT_raw['datetime'].dt.strftime('%H:%M:%S'))
 GPS = GPS_raw.rename(columns={"longitude(deg)": "X", "latitude(deg)": "Y"})
 GPS = GPS[['X', 'Y', 'GPST']]
 
-time_diff = timedelta(hours=5, minutes=0, seconds=10)
+time_diff = timedelta(hours=5, minutes=0, seconds=18)
 
 PT_scaled = PT_raw.sort_values('time').copy()
 PT_scaled['n'] = range(1, len(PT_scaled) + 1)
@@ -241,7 +241,7 @@ raw_pt_file = f"Raw_PT_Data_{emlid_date_str}.csv"
 upload_plot_intersect_file = drive.CreateFile({
     'title': raw_pt_file,
     'parents': [{'id': '1iER32B8BprkMqNjECaEcKOCZ7B1b7dWc'}]
-})
+})    #PRE-Emlid PT integrated folder
 
 upload_plot_intersect_file.SetContentFile(plot_intersect_file)
 upload_plot_intersect_file.Upload()
