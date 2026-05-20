@@ -53,7 +53,7 @@ emlid_files = []
 pt_files = []
 testbed_file = None
 
-pattern_eml = re.compile(r'^EML_(\d+\.\d+\.\d+)\.csv$')
+pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
 pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
 testbed_filename = 'TestBed_StripCorners.csv'
 
@@ -67,8 +67,8 @@ def extract_date_key(filename):
 for file in file_list:
     title = file['title']
     if title == testbed_filename:
-        testbed_file = (title, file[''])
-    elif pattern_eml.match(title):
+        testbed_file = (title, file['id'])
+    elif pattern_emlid.match(title):
         emlid_files.append((title, file['id']))
     elif pattern_pt.match(title):
         pt_files.append((title, file['id']))
