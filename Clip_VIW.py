@@ -51,11 +51,11 @@ for file in file_list:
 
 emlid_files = []
 pt_files = []
-testbed_file = None
+strip_corners = None
 
 pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
 pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
-testbed_filename = 'TestBed_StripCorners.csv'
+Wurdack_strip_corners = 'StripCorners_Wurdack_06_04_2026.csv'
 
 def extract_date_key(filename):
     match = re.search(r'(\d+)\.(\d+)\.(\d+)', filename)
@@ -66,8 +66,8 @@ def extract_date_key(filename):
 
 for file in file_list:
     title = file['title']
-    if title == testbed_filename:
-        testbed_file = (title, file['id'])
+    if title == Wurdack_strip_corners:
+        strip_corners = (title, file['id'])
     elif pattern_emlid.match(title):
         emlid_files.append((title, file['id']))
     elif pattern_pt.match(title):
@@ -77,15 +77,15 @@ for file in file_list:
 # DOWNLOAD FILES
 # ============================================================
 
-if testbed_file:
-    if not os.path.exists(testbed_file[0]):
-        print(f"📥 Downloading Testbed file: {testbed_file[0]}")
-        file = drive.CreateFile({'id': testbed_file[1]})
-        file.GetContentFile(testbed_file[0])
+if strip_corners:
+    if not os.path.exists(strip_corners[0]):
+        print(f"📥 Downloading Wurdack_strip_corners file: {strip_corners[0]}")
+        file = drive.CreateFile({'id': strip_corners[1]})
+        file.GetContentFile(strip_corners[0])
     else:
-        print(f"✅ Testbed file already exists locally: {testbed_file[0]}")
+        print(f"✅Strip_corners file already exists locally: {strip_corners[0]}")
 else:
-    raise FileNotFoundError("❌ Testbed file not found in Drive.")
+    raise FileNotFoundError("❌ strip_corners file not found in Drive.")
 
 if emlid_files:
     latest_emlid = max(emlid_files, key=lambda x: extract_date_key(x[0]))
@@ -158,7 +158,7 @@ merged_data = pd.merge(
     on=['scaled_time', 'ID']
 )
 
-merged_data = merged_data.ffill()
+merged_data = merged_data.fill()
 
 merged_filtered = merged_data[
     ['rawdistance', 'X', 'Y', 'scaled_time', 'tare', 'date']
@@ -170,8 +170,8 @@ merged_filtered = merged_filtered.dropna(subset=['rawdistance', 'X', 'Y', 'tare'
 # CREATE STRIP POLYGONS
 # ============================================================
 
-corners = pd.read_csv(testbed_filename).rename(columns={'POINT_X': 'x', 'POINT_Y': 'y'})
-corners.rename(columns={'PlotArea': 'Plot'}, inplace=True)
+corners = pd.read_csv(Wurdack_strip_corners).rename(columns={'POINT_X': 'x', 'POINT_Y': 'y'})
+corners.rename(columns={'Plot': 'Plot'}, inplace=True)
 
 polygon_list = []
 ids = []
@@ -233,20 +233,20 @@ plot_intersect = (
     .reset_index(drop=True)
 )
 
-plot_intersect_file = "Raw_PT_Data.csv"
+plot_intersect_file = "Emlid_PT_integrated_Raw_Data.csv"
 plot_intersect.to_csv(plot_intersect_file, index=False)
 
-raw_pt_file = f"Raw_PT_Data_{emlid_date_str}.csv"
+Emlid_PT_raw_file = f"Emlid_PT_integrated_Raw_Data_{emlid_date_str}.csv"
 
 upload_plot_intersect_file = drive.CreateFile({
-    'title': raw_pt_file,
+    'title': Emlid_PT_raw_file,
     'parents': [{'id': '1Fnp3sJOwh1IItbkKL49nDclk-NWWxcJF'}]
-})    #PRE-Emlid PT integrated folder
+})    #PRE - Emlid_PT_integrated_Raw_Data folder
 
 upload_plot_intersect_file.SetContentFile(plot_intersect_file)
 upload_plot_intersect_file.Upload()
 
-print(f"✅ Raw PT file uploaded as: {raw_pt_file}")
+print(f"✅ Emlid_PT_integrated_Raw_Data file uploaded as: {Emlid_PT_raw_file}")
 
 # ============================================================
 # HEIGHT CALCULATION: MEAN + MEDIAN + STD + SE IN MM
@@ -269,7 +269,7 @@ result = result.rename(
 result['PTdata_rawdistance'] = result['rawdistance']
 result['grass_height_mm'] = (result['tare'] - result['PTdata_rawdistance']) * 0.0859536
 
-Emlid_PT_Intergrated = result.groupby(['Plot', 'Strip']).agg(
+PT_Height_Stats_ByStrip = result.groupby(['Plot', 'Strip']).agg(
     mean_height=('grass_height_mm', 'mean'),
     median_height=('grass_height_mm', 'median'),
     std_height=('grass_height_mm', 'std'),
@@ -278,28 +278,28 @@ Emlid_PT_Intergrated = result.groupby(['Plot', 'Strip']).agg(
     Date=('Date', 'first')
 ).reset_index()
 
-Emlid_PT_Intergrated['standard_error_height'] = (
-    Emlid_PT_Intergrated['std_height'] /
-    np.sqrt(Emlid_PT_Intergrated['sample_count'])
+PT_Height_Stats_ByStrip['standard_error_height'] = (
+    PT_Height_Stats_ByStrip['std_height'] /
+    np.sqrt(PT_Height_Stats_ByStrip['sample_count'])
 )
 
-Emlid_PT_Intergrated["Farm_Coordinates"] = [[-91.442144,37.78772],[-91.442164,37.788076],[-91.442118,37.788786],
+PT_Height_Stats_ByStrip["Farm_Coordinates"] = [[-91.442144,37.78772],[-91.442164,37.788076],[-91.442118,37.788786],
                                             [-91.441549,37.792932],[-91.440653,37.793995],[-91.439953,37.793945],
                                             [-91.438453,37.793664],[-91.438157,37.793096],[-91.437572,37.79182],
                                             [-91.437519,37.791567],[-91.437535,37.791072],[-91.437544,37.790958],
                                             [-91.437864,37.788666],[-91.437975,37.787982],[-91.438443,37.786647],
                                             [-91.438678,37.786467],[-91.440545,37.78644],[-91.442144,37.78772]]
 
-Emlid_PT_Intergrated["unique_id"] = (
-    Emlid_PT_Intergrated["Plot"].astype(str) +
+PT_Height_Stats_ByStrip["unique_id"] = (
+    PT_Height_Stats_ByStrip["Plot"].astype(str) +
     "_" +
-    Emlid_PT_Intergrated["Strip"].astype(str)
+    PT_Height_Stats_ByStrip["Strip"].astype(str)
 )
 
-intermediate_file = 'Emlid_PT_Intergrated.csv'
-final_file = f"Emlid_PT_Intergrated_{emlid_date_str}.csv"
+intermediate_file = 'PT_Height_Stats_ByStrip.csv'
+final_file = f"PT_Height_Stats_ByStrip_{emlid_date_str}.csv"
 
-Emlid_PT_Intergrated.to_csv(intermediate_file, index=False)
+PT_Height_Stats_ByStrip.to_csv(intermediate_file, index=False)
 
 if os.path.exists(final_file):
     os.remove(final_file)
@@ -309,12 +309,12 @@ os.rename(intermediate_file, final_file)
 upload_file = drive.CreateFile({
     'title': final_file,
     'parents': [{'id': '1FOkRyoatYYfGRrcd-SrkqCvSfBl3rV00'}]
-})
+}) #PRE-PT_Height_Stats_ByStrip folder
 
 upload_file.SetContentFile(final_file)
 upload_file.Upload()
 
-print(f"✅ EMLID + PT integrated file uploaded as: {final_file}")
+print(f"✅ PRE-PT_Height_Stats_ByStrip file uploaded as: {final_file}")
 
 # ============================================================
 # SENTINEL HUB + NOAA WEATHER FUNCTION
@@ -787,16 +787,16 @@ clipped_df = pd.read_csv(final_file)
 
 model_df = fetch_and_process_farm_data(clipped_df)
 
-final_model_file = f"Height_VIs_Weather_{emlid_date_str}.csv"
+final_Height_VIs_weather_file = f"Height_VIs_Weather_{emlid_date_str}.csv"
 
-model_df.to_csv(final_model_file, index=False)
-print(f"📊 Initial model data saved as: {final_model_file}")
+model_df.to_csv(final_Height_VIs_weather_file, index=False)
+print(f"📊 Initial model data saved as: {final_Height_VIs_weather_file}")
 
 # ============================================================
 # ADD AGEBB 7/14/21 DAY WEATHER FEATURES
 # ============================================================
 
-df = pd.read_csv(final_model_file)
+df = pd.read_csv(final_Height_VIs_weather_file)
 df['Date'] = pd.to_datetime(df['Date'])
 
 df = add_agebb_rolling_weather(df, station_prefix='sfm')
@@ -854,21 +854,21 @@ ordered_cols = [
 existing_ordered_cols = [col for col in ordered_cols if col in df.columns]
 df = df[existing_ordered_cols]
 
-df.to_csv(final_model_file, index=False)
+df.to_csv(final_Height_VIs_weather_file, index=False)
 
 print("✅ Final model updated with mean height, median height, standard deviation, standard error, and AGEBB rolling weather features.")
-print(f"✅ Final saved file: {final_model_file}")
+print(f"✅ Final saved file: {final_Height_VIs_weather_file}")
 
 # ============================================================
 # UPLOAD FINAL FILE TO GOOGLE DRIVE
 # ============================================================
 
 upload_model_file = drive.CreateFile({
-    'title': final_model_file,
+    'title': final_Height_VIs_weather_file,
     'parents': [{'id': '1XK3mvRlftMbSW5dTby9wqCX3m6ES1dNs'}]
-})
+}) #PRE - Height_VIs_Weather_Data folder
 
-upload_model_file.SetContentFile(final_model_file)
+upload_model_file.SetContentFile(final_Height_VIs_weather_file)
 upload_model_file.Upload()
 
-print(f"✅ Final file uploaded to Google Drive folder: {final_model_file}")
+print(f"✅ Final file uploaded to Google Drive folder: {final_Height_VIs_weather_file}")
