@@ -158,7 +158,7 @@ merged_data = pd.merge(
     on=['scaled_time', 'ID']
 )
 
-merged_data = merged_data.fill()
+merged_data = merged_data.ffill()
 
 merged_filtered = merged_data[
     ['rawdistance', 'X', 'Y', 'scaled_time', 'tare', 'date']
