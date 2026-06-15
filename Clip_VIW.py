@@ -40,7 +40,7 @@ drive = GoogleDrive(gauth)
 # DRIVE FOLDER SETUP
 # ============================================================
 
-folder_id = "1G4s-qT5_VYZSu3PVU0vCYxo6_NWqA_0q"
+folder_id = "1oPE8x4cQRsmo6wjL0U5ifypZG9ecUicd"
 
 file_list = drive.ListFile({
     'q': f"'{folder_id}' in parents and trashed=false"
@@ -240,7 +240,7 @@ raw_pt_file = f"Raw_PT_Data_{emlid_date_str}.csv"
 
 upload_plot_intersect_file = drive.CreateFile({
     'title': raw_pt_file,
-    'parents': [{'id': '1iER32B8BprkMqNjECaEcKOCZ7B1b7dWc'}]
+    'parents': [{'id': '1Fnp3sJOwh1IItbkKL49nDclk-NWWxcJF'}]
 })    #PRE-Emlid PT integrated folder
 
 upload_plot_intersect_file.SetContentFile(plot_intersect_file)
@@ -283,16 +283,12 @@ Emlid_PT_Intergrated['standard_error_height'] = (
     np.sqrt(Emlid_PT_Intergrated['sample_count'])
 )
 
-Emlid_PT_Intergrated["Farm_Coordinates"] = (
-    "POLYGON (("
-    "-92.2615122 38.8894407, "
-    "-92.2615494 38.888182, "
-    "-92.2587427 38.8880663, "
-    "-92.2587272 38.8893611, "
-    "-92.2600779 38.8894118, "
-    "-92.2615122 38.8894407"
-    "))"
-)
+Emlid_PT_Intergrated["Farm_Coordinates"] = [[-91.442144,37.78772],[-91.442164,37.788076],[-91.442118,37.788786],
+                                            [-91.441549,37.792932],[-91.440653,37.793995],[-91.439953,37.793945],
+                                            [-91.438453,37.793664],[-91.438157,37.793096],[-91.437572,37.79182],
+                                            [-91.437519,37.791567],[-91.437535,37.791072],[-91.437544,37.790958],
+                                            [-91.437864,37.788666],[-91.437975,37.787982],[-91.438443,37.786647],
+                                            [-91.438678,37.786467],[-91.440545,37.78644],[-91.442144,37.78772]]
 
 Emlid_PT_Intergrated["unique_id"] = (
     Emlid_PT_Intergrated["Plot"].astype(str) +
@@ -312,7 +308,7 @@ os.rename(intermediate_file, final_file)
 
 upload_file = drive.CreateFile({
     'title': final_file,
-    'parents': [{'id': '1bNyD7WR7Zbk-OKtNdpDjta-LuAGLkSk2'}]
+    'parents': [{'id': '1FOkRyoatYYfGRrcd-SrkqCvSfBl3rV00'}]
 })
 
 upload_file.SetContentFile(final_file)
@@ -438,8 +434,8 @@ def fetch_and_process_farm_data(clipped_df):
     ndvi_requests = []
 
     for index, row in gdf.iterrows():
-        start_date = (row['Img_date'] - timedelta(days=5)).strftime('%Y-%m-%d')
-        end_date = row['Img_date'].strftime('%Y-%m-%d')
+        start_date = (row['Img_date'] - timedelta(days=0)).strftime('%Y-%m-%d')
+        end_date = (row['Img_date'] + timedelta(days=9)).strftime('%Y-%m-%d')
 
         aggregation = SentinelHubStatistical.aggregation(
             evalscript=evalscript,
@@ -869,7 +865,7 @@ print(f"✅ Final saved file: {final_model_file}")
 
 upload_model_file = drive.CreateFile({
     'title': final_model_file,
-    'parents': [{'id': '13Ljj7woD1lsPplBc7EVocKy-jDhXiV7-'}]
+    'parents': [{'id': '1XK3mvRlftMbSW5dTby9wqCX3m6ES1dNs'}]
 })
 
 upload_model_file.SetContentFile(final_model_file)
