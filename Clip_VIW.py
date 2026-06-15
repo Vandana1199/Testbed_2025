@@ -53,8 +53,8 @@ emlid_files = []
 pt_files = []
 strip_corners = None
 
-pattern_emlid = re.compile(r'^EMLID_(\d+\.\d+\.\d+)\.csv$')
-pattern_pt = re.compile(r'^PT_(\d+\.\d+\.\d+)\.csv$')
+pattern_emlid = re.compile(r'^EMLID_Wurdack_(\d+\.\d+\.\d+)\.csv$')
+pattern_pt = re.compile(r'^PT_Wurdack_(\d+\.\d+\.\d+)\.csv$')
 Wurdack_strip_corners = 'StripCorners_Wurdack_06_04_2026.csv'
 
 def extract_date_key(filename):
