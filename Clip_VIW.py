@@ -872,7 +872,7 @@ def add_agebb_rolling_weather(df, station_prefix='sfm'):
 # ============================================================
 
 # clipped_df = pd.read_csv(final_file)
-clipped_df = pd.read_csv("Wurdack_Strip_Polygons_with_offsets.csv")
+clipped_df = pd.read_csv("wurdack_polygons_with_offsets_ByStrip.csv")
 
 
 model_df = fetch_and_process_farm_data(clipped_df)
