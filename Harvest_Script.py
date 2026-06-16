@@ -11,9 +11,9 @@ import traceback
 
 DRIVE_CREDENTIALS_FILE = "mycreds_new.txt"
 
-folder_1_id = '1cC6k8mqJa9TyAFKXO2t8BTSHOmZM81XC'  # Harvest
-folder_2_id = '13Ljj7woD1lsPplBc7EVocKy-jDhXiV7-'  # Emlid_PT_Intergrated from VI+weather folder
-folder_3_id = '1G4lXcgNpGwTEHsJPpLxcS9pYfmWOsj78'  # Final output Yield
+folder_1_id = '1r48DxNgK0a_1Exl_JkyTiN7h7qzgLk0k'  # Harvest
+folder_2_id = '1XK3mvRlftMbSW5dTby9wqCX3m6ES1dNs'  # Emlid_PT_Intergrated from VI+weather folder
+folder_3_id = '16DbUgUqZxcwQU9rymVV16-PcdjC0f7ez'  # Final output Yield
 
 # =========================================================
 # HELPERS
@@ -118,7 +118,7 @@ def main():
     harvest_files = [
         (f['title'], f['id'])
         for f in harvest_files_raw
-        if re.match(r'^Harvest_(\d+\.\d+\.\d+)\.csv$', f['title'])
+        if re.match(r'^Harvest_Wurdack_(\d+\.\d+\.\d+)\.csv$', f['title'])
     ]
 
     pt_files = [
@@ -409,7 +409,7 @@ def main():
     date_key = extract_date_key(latest_harvest[0])
     date_str_fmt = f"{date_key[1]:02}-{date_key[2]:02}-{date_key[0]}"
 
-    yield_filename = f"Yield_{date_str_fmt}.csv"
+    yield_filename = f"Yield_Wurdack_{date_str_fmt}.csv"
 
     data.to_csv(yield_filename, index=False)
 
