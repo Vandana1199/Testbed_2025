@@ -151,6 +151,42 @@ GPS['ID'] = GPS.groupby('scaled_time2').cumcount() + 1
 
 GPS_merge = GPS[['X', 'Y', 'scaled_time', 'ID']]
 
+# ===============
+merged_filtered_file = "PT_merge.csv"
+PT_merge.to_csv(merged_filtered_file, index=False)
+
+Emlid_PT_raw_file = f"PT_merge_{emlid_date_str}.csv"
+
+upload_plot_intersect_file = drive.CreateFile({
+    'title': Emlid_PT_raw_file,
+    'parents': [{'id': '1Fnp3sJOwh1IItbkKL49nDclk-NWWxcJF'}]
+})    #PRE - Emlid_PT_integrated_Raw_Data folder
+
+upload_plot_intersect_file.SetContentFile(merged_filtered_file)
+upload_plot_intersect_file.Upload()
+
+print(f"✅ Emlid_PT_integrated_Raw_Data file uploaded as: {Emlid_PT_raw_file}")
+
+# ===============
+
+# ===============
+merged_filtered_file = "GPS_merge.csv"
+GPS_merge.to_csv(merged_filtered_file, index=False)
+
+Emlid_PT_raw_file = f"GPS_merge_{emlid_date_str}.csv"
+
+upload_plot_intersect_file = drive.CreateFile({
+    'title': Emlid_PT_raw_file,
+    'parents': [{'id': '1Fnp3sJOwh1IItbkKL49nDclk-NWWxcJF'}]
+})    #PRE - Emlid_PT_integrated_Raw_Data folder
+
+upload_plot_intersect_file.SetContentFile(merged_filtered_file)
+upload_plot_intersect_file.Upload()
+
+print(f"✅ Emlid_PT_integrated_Raw_Data file uploaded as: {Emlid_PT_raw_file}")
+
+# ===============
+
 merged_data = pd.merge(
     PT_merge,
     GPS_merge,
