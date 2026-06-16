@@ -177,7 +177,7 @@ upload_plot_intersect_file = drive.CreateFile({
     'parents': [{'id': '1Fnp3sJOwh1IItbkKL49nDclk-NWWxcJF'}]
 })    #PRE - Emlid_PT_integrated_Raw_Data folder
 
-upload_plot_intersect_file.SetContentFile(plot_intersect_file)
+upload_plot_intersect_file.SetContentFile(merged_filtered_file)
 upload_plot_intersect_file.Upload()
 
 print(f"✅ Emlid_PT_integrated_Raw_Data file uploaded as: {Emlid_PT_raw_file}")
@@ -229,7 +229,7 @@ upload_plot_intersect_file = drive.CreateFile({
     'parents': [{'id': '1Fnp3sJOwh1IItbkKL49nDclk-NWWxcJF'}]
 })    #PRE - Emlid_PT_integrated_Raw_Data folder
 
-upload_plot_intersect_file.SetContentFile(plot_intersect_file)
+upload_plot_intersect_file.SetContentFile(merged_filtered_file)
 upload_plot_intersect_file.Upload()
 
 print(f"✅ Emlid_PT_integrated_Raw_Data file uploaded as: {Emlid_PT_raw_file}")
