@@ -166,6 +166,24 @@ merged_filtered = merged_data[
 
 merged_filtered = merged_filtered.dropna(subset=['rawdistance', 'X', 'Y', 'tare'])
 
+# ===============
+merged_filtered_file = "merged_filtered.csv"
+merged_filtered.to_csv(merged_filtered_file, index=False)
+
+Emlid_PT_raw_file = f"merged_filtered_{emlid_date_str}.csv"
+
+upload_plot_intersect_file = drive.CreateFile({
+    'title': Emlid_PT_raw_file,
+    'parents': [{'id': '1Fnp3sJOwh1IItbkKL49nDclk-NWWxcJF'}]
+})    #PRE - Emlid_PT_integrated_Raw_Data folder
+
+upload_plot_intersect_file.SetContentFile(plot_intersect_file)
+upload_plot_intersect_file.Upload()
+
+print(f"✅ Emlid_PT_integrated_Raw_Data file uploaded as: {Emlid_PT_raw_file}")
+
+# ===============
+
 # ============================================================
 # CREATE STRIP POLYGONS
 # ============================================================
@@ -199,6 +217,24 @@ polygon_gdf = gpd.GeoDataFrame(
     {'Plot': ids, 'Strip': strips, 'geometry': polygon_list},
     crs="EPSG:4326"
 )
+
+# ===============
+merged_filtered_file = "polygon_gdf.csv"
+polygon_gdf.to_csv(merged_filtered_file, index=False)
+
+Emlid_PT_raw_file = f"polygon_gdf_{emlid_date_str}.csv"
+
+upload_plot_intersect_file = drive.CreateFile({
+    'title': Emlid_PT_raw_file,
+    'parents': [{'id': '1Fnp3sJOwh1IItbkKL49nDclk-NWWxcJF'}]
+})    #PRE - Emlid_PT_integrated_Raw_Data folder
+
+upload_plot_intersect_file.SetContentFile(plot_intersect_file)
+upload_plot_intersect_file.Upload()
+
+print(f"✅ Emlid_PT_integrated_Raw_Data file uploaded as: {Emlid_PT_raw_file}")
+
+# ===============
 
 # ============================================================
 # SPATIAL JOIN PT POINTS WITH STRIPS
