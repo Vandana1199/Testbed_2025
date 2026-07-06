@@ -522,8 +522,8 @@ def fetch_and_process_farm_data(clipped_df):
     ndvi_requests = []
 
     for index, row in gdf.iterrows():
-        start_date = (row['Img_date'] - timedelta(days=0)).strftime('%Y-%m-%d')
-        end_date = (row['Img_date'] + timedelta(days=9)).strftime('%Y-%m-%d')
+        start_date = (row['Img_date'] - timedelta(days=5)).strftime('%Y-%m-%d')
+        end_date = (row['Img_date'] + timedelta(days=0)).strftime('%Y-%m-%d')
 
         aggregation = SentinelHubStatistical.aggregation(
             evalscript=evalscript,
