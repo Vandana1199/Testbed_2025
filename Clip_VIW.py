@@ -236,14 +236,17 @@ for (plot_id, strip_id) in corners[['Plot', 'Strip']].drop_duplicates().values:
         (corners['Plot'] == plot_id) &
         (corners['Strip'] == strip_id)
     ].copy()
+    
+    # Convex hull handles point ordering automatically (no bowties)
+    polygon = MultiPoint(polygon_data[['x', 'y']].values).convex_hull
 
-    closed_polygon = pd.concat(
-        [polygon_data, polygon_data.iloc[[0]]],
-        ignore_index=True
-    )
+    # closed_polygon = pd.concat(
+    #     [polygon_data, polygon_data.iloc[[0]]],
+    #     ignore_index=True
+    # )
 
-    coords = closed_polygon[['x', 'y']].values.tolist()
-    polygon = Polygon(coords)
+    # coords = closed_polygon[['x', 'y']].values.tolist()
+    # polygon = Polygon(coords)
 
     polygon_list.append(polygon)
     ids.append(str(plot_id))
@@ -253,6 +256,10 @@ polygon_gdf = gpd.GeoDataFrame(
     {'Plot': ids, 'Strip': strips, 'geometry': polygon_list},
     crs="EPSG:4326"
 )
+
+# Verify all polygons are valid (no self-intersections)
+assert polygon_gdf.geometry.is_valid.all(), "Some polygons are invalid!"
+print(f"All {len(polygon_gdf)} polygons are valid.")
 
 # ===============
 merged_filtered_file = "polygon_gdf.csv"
