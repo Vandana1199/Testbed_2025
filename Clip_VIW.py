@@ -4,7 +4,7 @@ import pandas as pd
 import re
 import os
 import geopandas as gpd
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, MultiPoint
 from shapely import wkt
 from datetime import timedelta
 import numpy as np
