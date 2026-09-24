@@ -441,7 +441,7 @@ def fetch_and_process_farm_data(clipped_df):
     config.sh_client_id = CLIENT_ID
     config.sh_client_secret = CLIENT_SECRET
 
-    collection_id = "31eede13-39cc-402d-acd3-d5a7881cbd59"
+    collection_id = "eca07eea-ad47-4776-bce7-8909450f5ae7"
     PlanetScope_data_collection = DataCollection.define_byoc(collection_id)
 
     df['Coordinates'] = df['Coordinates'].apply(wkt.loads)
