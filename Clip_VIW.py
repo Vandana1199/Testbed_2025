@@ -129,7 +129,8 @@ PT_raw['time'] = pd.to_timedelta(PT_raw['datetime'].dt.strftime('%H:%M:%S'))
 GPS = GPS_raw.rename(columns={"longitude(deg)": "X", "latitude(deg)": "Y"})
 GPS = GPS[['X', 'Y', 'GPST']]
 
-time_diff = timedelta(hours=5, minutes=0, seconds=18)
+time_diff = timedelta(hours=5, minutes=0, seconds=18) #Time difference during daylight saving CDT vs GPST starts 2nd Sunday March
+#time_diff = timedelta(hours=6, minutes=0, seconds=18) #Time difference after daylight saving ends?? CST vs GPST starts 1st Sunday November
 
 PT_scaled = PT_raw.sort_values('time').copy()
 PT_scaled['n'] = range(1, len(PT_scaled) + 1)
